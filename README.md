@@ -1,4 +1,4 @@
-# Apollo API V2 [![Build Status](https://travis-ci.com/henryefranks/apollo-api-v2.svg?token=BSkHi2qzH4oxzzPwcHVK&branch=master)](https://travis-ci.com/henryefranks/apollo-api-v2)
+# Apollo API V2
 
 ## Installing the Database
 
