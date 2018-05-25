@@ -6,15 +6,14 @@ const	express						= require('express'),
 		port						= process.env.PORT || 4000,
 		config						= require('./config'),
 
-		mongoose					= require('mongoose'),
+		mongodb 					= require('mongodb'),
 		bodyParser					= require('body-parser'),
 		helmet						= require('helmet'),
 		{asyncMonitor, pkgMonitor}	= require('async-optics');
 
-// Mongoose setup
-mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost/apollodb');
-mongoose.set('debug', true);
+// Mongo Setup
+const	MongoClient = mongodb.MongoClient,
+		MongoNetworkError = mongodb.MongoNetworkError;
 
 // AsyncOptics
 asyncMonitor(4001);

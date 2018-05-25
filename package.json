@@ -3,15 +3,24 @@
 	"version": "0.1.0",
 	"private": true,
 	"contributors": [
-		{ "name": "Henry Franks" },
-		{ "name": "Cameron Robey" },
-		{ "name": "Max O'Brien" }
+		{
+			"name": "Henry Franks"
+		},
+		{
+			"name": "Cameron Robey"
+		},
+		{
+			"name": "Max O'Brien"
+		}
 	],
 	"dependencies": {
 		"async-optics": "^1.1.0",
 		"express": "^4.16.2",
 		"helmet": "^3.12.1",
-		"mongoose": "^5.1.2"
+		"mongodb": "^3.1.0-beta2"
+	},
+	"devDependencies": {
+		"nodemon": "^1.17.5"
 	},
 	"scripts": {
 		"start": "nodemon server.js"
