@@ -6,14 +6,9 @@ const	express						= require('express'),
 		port						= process.env.PORT || 4000,
 		config						= require('./config'),
 
-		mongodb 					= require('mongodb'),
 		bodyParser					= require('body-parser'),
 		helmet						= require('helmet'),
 		{asyncMonitor, pkgMonitor}	= require('async-optics');
-
-// Mongo Setup
-const	MongoClient = mongodb.MongoClient,
-		MongoNetworkError = mongodb.MongoNetworkError;
 
 // AsyncOptics
 asyncMonitor(4001);

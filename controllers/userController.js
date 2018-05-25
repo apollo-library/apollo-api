@@ -1,7 +1,9 @@
 'use strict';
 
-// Import components
-const mongoose = require('mongoose');
+// Mongo Setup
+const	mongodb				= require('mongodb'),
+		MongoClient			= mongodb.MongoClient,
+		MongoNetworkError	= mongodb.MongoNetworkError;
 
 // Import models
 
