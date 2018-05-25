@@ -7,12 +7,7 @@ const	express						= require('express'),
 		config						= require('./config'),
 
 		bodyParser					= require('body-parser'),
-		helmet						= require('helmet'),
-		{asyncMonitor, pkgMonitor}	= require('async-optics');
-
-// AsyncOptics
-asyncMonitor(4001);
-pkgMonitor('./package');
+		helmet						= require('helmet');
 
 // Get Request Body
 app.use(bodyParser.urlencoded({extended: true}));

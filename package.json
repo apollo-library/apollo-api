@@ -14,7 +14,6 @@
 		}
 	],
 	"dependencies": {
-		"async-optics": "^1.1.0",
 		"express": "^4.16.2",
 		"helmet": "^3.12.1",
 		"mongodb": "^3.1.0-beta2"
