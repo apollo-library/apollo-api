@@ -1,19 +1,33 @@
 'use strict';
 
 // Mongo Setup
-const	mongodb				= require('mongodb'),
-		MongoClient			= mongodb.MongoClient,
-		MongoNetworkError	= mongodb.MongoNetworkError;
-
-// Import models
+const	mongo	=		require('../mongo'),
+		db		=		mongo.db(),
+		client	=		mongo.client();
 
 // Import middleware
 const asyncHandler = require('../middleware/asyncHandler');
 
 exports.getBooks = asyncHandler(async function(req, res) {
-	res.json({function: "getBooks"});
+	res.json({books: await db.collection('books').find().toArray()});
 });
 
 exports.addBook = asyncHandler(async function(req, res) {
-	res.json({function: "addBook", body: req.body});
+	const promise = client.withSession(async session => {
+		session.startTransaction();
+
+		try {
+			// This doesn't do what the function's supposed to but is just here to test multi-document ACID transactions
+			await db.collection('books').insertOne({title: req.body.title}, {session});
+			await db.collection('students').insertOne({name: req.body.name}, {session});
+		} catch (err) {
+			if (err) console.dir(err);
+			session.abortTransaction();
+			res.json({error: err.message});
+		}
+
+		await session.commitTransaction()
+	});
+
+	return promise.then(() => res.json({message: "success"}));
 });
