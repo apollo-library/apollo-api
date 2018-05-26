@@ -13,7 +13,7 @@ exports.getBooks = asyncHandler(async function(req, res) {
 });
 
 exports.addBook = asyncHandler(async function(req, res) {
-	const promise = client.withSession(async session => {
+	client.withSession(async session => {
 		session.startTransaction();
 
 		try {
@@ -26,8 +26,6 @@ exports.addBook = asyncHandler(async function(req, res) {
 			res.json({error: err.message});
 		}
 
-		await session.commitTransaction()
-	});
-
-	return promise.then(() => res.json({message: "success"}));
+		await session.commitTransaction();
+	}).then(() => res.json({message: "success"}));
 });

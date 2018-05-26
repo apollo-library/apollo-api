@@ -14,10 +14,10 @@ var client;
 // Connect to MongoDB
 mongo.connect((err) => {
 	if (err) {
-		console.log(err.message)
-		process.exit(1)
+		console.log(err.message);
+		process.exit(1);
 	}
-	client = mongo.client()
+	client = mongo.client();
 
 	// Get Request Body
 	app.use(bodyParser.urlencoded({extended: true}));
