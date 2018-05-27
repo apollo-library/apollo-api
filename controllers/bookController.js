@@ -5,8 +5,6 @@ const	mongo	=		require('../mongo'),
 		db		=		mongo.db(),
 		client	=		mongo.client();
 
-// Import models
-
 // Import middleware
 const asyncHandler = require('../middleware/asyncHandler');
 
@@ -32,13 +30,13 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	const user = await db.collection('users').findOne({id: req.body.userID});
+	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
 		res.json({error: "User doesn't exist"});
 		return;
 	}
 
-	const book = await db.collection('books').findOne({id: req.params.bookID});
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		res.json({error: "Book doesn't exist"});
 		return;
@@ -52,17 +50,16 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 		session.startTransaction();
 
 		try {
-			await db.collection('books').updateOne({id: req.params.bookID}, {$set: {
-				loan: {
-					userID: req.body.userID
-					// Add a full object here
-				}
+			const loanID = (await db.collection('loans').insertOne({
+				userID: req.body.userID,
+				bookID: req.params.bookID
+			}, {session})).ops[0]._id;
+
+			await db.collection('books').updateOne({_id: req.params.bookID}, {$set: {
+				loanID: loanID
 			}}, {session});
-			await db.collection('users').updateOne({id: req.body.userID}, {$push: {
-				loans: {
-					bookID: req.params.bookID
-					// Add a full object here
-				}
+			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
+				loanIDs: loanID
 			}}, {session});
 		} catch (err) {
 			if (err) console.log(err.message);

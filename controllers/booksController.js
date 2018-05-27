@@ -17,7 +17,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 		res.json({error: "No ID specified"});
 		return;
 	}
-	const book = await db.collection('books').findOne({id: req.body.id});
+	const book = await db.collection('books').findOne({_id: req.body.id});
 
 	if (book) {
 		res.json({error: "Book already exists"});
@@ -27,7 +27,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 	// TODO: Add validation on all params
 	try {
 		await db.collection('books').insertOne({
-			id: req.body.id,
+			_id: req.body.id,
 			title: req.body.title,
 			author: req.body.author,
 			tags: req.body.tags
