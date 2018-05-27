@@ -1,9 +1,9 @@
 'use strict';
 
 // Mongo Setup
-const	mongodb				= require('mongodb'),
-		MongoClient			= mongodb.MongoClient,
-		MongoNetworkError	= mongodb.MongoNetworkError;
+const	mongo	=		require('../mongo'),
+		db		=		mongo.db(),
+		client	=		mongo.client();
 
 // Import models
 
@@ -27,7 +27,52 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 // Book loaning and management
 
 exports.withdrawBook = asyncHandler(async function(req, res) {
-	res.json({function: "withdrawBook", bookID: req.params.bookID, body: req.body});
+	if (!req.body.studentID) {
+		res.json({error: "No student ID specified"});
+		return;
+	}
+
+	const student = await db.collection('students').findOne({id: req.body.studentID});
+	if (!student) {
+		res.json({error: "Student doesn't exist"});
+		return;
+	}
+
+	const book = await db.collection('books').findOne({id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+	if (book.loan) {
+		res.json({error: "Book already on loan"});
+		return;
+	}
+
+	client.withSession(async session => {
+		session.startTransaction();
+
+		try {
+			await db.collection('books').updateOne({id: req.params.bookID}, {$set: {
+				loan: {
+					studentID: req.body.studentID
+					// Add a full object here
+				}
+			}}, {session});
+			await db.collection('students').updateOne({id: req.body.studentID}, {$push: {
+				loans: {
+					bookID: req.params.bookID
+					// Add a full object here
+				}
+			}}, {session});
+		} catch (err) {
+			if (err) console.log(err.message);
+			session.abortTransaction();
+			res.json({error: "Couldn't withdraw book"});
+			return;
+		}
+
+		await session.commitTransaction();
+	}).then(() => res.json({message: "success"}));
 });
 
 exports.depositBook = asyncHandler(async function(req, res) {

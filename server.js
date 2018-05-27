@@ -67,7 +67,7 @@ mongo.connect((err) => {
 })
 
 function cleanup() {
-	client.close(); // Close the database connection
+	if (client) client.close(); // Close the database connection
 	process.exit();
 }
 

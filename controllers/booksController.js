@@ -13,19 +13,28 @@ exports.getBooks = asyncHandler(async function(req, res) {
 });
 
 exports.addBook = asyncHandler(async function(req, res) {
-	client.withSession(async session => {
-		session.startTransaction();
+	if (!req.body.id) {
+		res.json({error: "No ID specified"});
+		return;
+	}
+	const book = await db.collection('books').findOne({id: req.body.id});
 
-		try {
-			// This doesn't do what the function's supposed to but is just here to test multi-document ACID transactions
-			await db.collection('books').insertOne({title: req.body.title}, {session});
-			await db.collection('students').insertOne({name: req.body.name}, {session});
-		} catch (err) {
-			if (err) console.dir(err);
-			session.abortTransaction();
-			res.json({error: err.message});
-		}
+	if (book) {
+		res.json({error: "Book already exists"});
+		return;
+	}
 
-		await session.commitTransaction();
-	}).then(() => res.json({message: "success"}));
+	// TODO: Add validation on all params
+	try {
+		await db.collection('books').insertOne({
+			id: req.body.id
+			// Other params go here
+		});
+	} catch (err) {
+		if (err) console.log(err.message);
+		res.json({error: "Couldn't add book"});
+		return;
+	}
+
+	res.json({message: "Success"});
 });

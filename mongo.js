@@ -9,7 +9,9 @@ exports.connect = async (callback) => {
 	// Connect to MongoDB and set client and db vars
 	_client = new MongoClient("mongodb://localhost:27017/apollodb?replicaSet=rs0");
 	callback(await _client.connect()
-	.then(() => _db = _client.db('apollodb'))
+	.then(() => {
+		_db = _client.db('apollodb')
+	})
 	.catch((err) => err))
 };
 
