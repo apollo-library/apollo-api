@@ -27,14 +27,14 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 // Book loaning and management
 
 exports.withdrawBook = asyncHandler(async function(req, res) {
-	if (!req.body.studentID) {
-		res.json({error: "No student ID specified"});
+	if (!req.body.userID) {
+		res.json({error: "No user ID specified"});
 		return;
 	}
 
-	const student = await db.collection('students').findOne({id: req.body.studentID});
-	if (!student) {
-		res.json({error: "Student doesn't exist"});
+	const user = await db.collection('users').findOne({id: req.body.userID});
+	if (!user) {
+		res.json({error: "User doesn't exist"});
 		return;
 	}
 
@@ -54,11 +54,11 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 		try {
 			await db.collection('books').updateOne({id: req.params.bookID}, {$set: {
 				loan: {
-					studentID: req.body.studentID
+					userID: req.body.userID
 					// Add a full object here
 				}
 			}}, {session});
-			await db.collection('students').updateOne({id: req.body.studentID}, {$push: {
+			await db.collection('users').updateOne({id: req.body.userID}, {$push: {
 				loans: {
 					bookID: req.params.bookID
 					// Add a full object here
