@@ -1,17 +1,22 @@
 'use strict';
 
 // Mongo Setup
-const	mongodb				= require('mongodb'),
-		MongoClient			= mongodb.MongoClient,
-		MongoNetworkError	= mongodb.MongoNetworkError;
+const	mongo	=		require('../mongo'),
+		db		=		mongo.db(),
+		client	=		mongo.client();
 
 // Import middleware
 const asyncHandler = require('../middleware/asyncHandler');
 
 exports.getLoans = asyncHandler(async function(req, res) {
-	res.json({function: "getLoans"});
+	res.json({loans: await db.collection('loans').find().toArray()});
 });
 
 exports.getOverdueLoans = asyncHandler(async function(req, res) {
-	res.json({function: "getOverdueLoans"});
+	const loans = await db.collection('loans').find().toArray();
+
+	var now = new Date();
+	now.setHours(0,0,0,0);
+	const overdue = loans.filter(loan => !loan.returnDate && loan.dueDate < now);
+	res.json({overdue: overdue});
 });

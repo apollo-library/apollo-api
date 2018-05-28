@@ -105,7 +105,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 			const loanID = (await db.collection('loans').insertOne({
 				userID: user._id,
 				bookID: book._id,
-				due: new Date(req.body.due)
+				dueDate: new Date(req.body.due)
 			}, {session})).ops[0]._id;
 
 			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
@@ -159,6 +159,10 @@ exports.depositBook = asyncHandler(async (req, res) => {
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
 	if (!loan) {
 		res.json({error: "Loan doesn't exist"});
+		return;
+	}
+	if (loan.userID != user._id) {
+		res.json({error: "Wrong user"});
 		return;
 	}
 
@@ -351,7 +355,7 @@ exports.renewBook = asyncHandler(async (req, res) => {
 
 	try {
 		await db.collection('loans').updateOne({_id: book.loanID}, {$set: {
-			due: new Date(req.body.due)
+			dueDate: new Date(req.body.due)
 		}});
 	} catch (err) {
 		console.log(err);
