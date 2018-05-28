@@ -53,6 +53,13 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 		return;
 	}
 
+	const reservation = book.reservationID ? await db.collection('reservations').findOne({_id: book.reservationID}) : null;
+
+	if (reservation && reservation.userID != user._id) {
+		res.json({error: "Book reserved"});
+		return;
+	}
+
 	client.withSession(async session => {
 		session.startTransaction();
 
@@ -65,11 +72,17 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 
 			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
 				loanIDs: loanID
+			}, $pull: {
+				reservationIDs: book.reservationID
 			}}, {session});
 
 			await db.collection('books').updateOne({_id: req.params.bookID}, {$set: {
 				loanID: loanID
+			}, $unset : {
+				reservationID: null
 			}}, {session});
+
+			await db.collection('reservations').remove({_id: book.reservationID})
 		} catch (err) {
 			if (err) console.log(err.message);
 			session.abortTransaction();
