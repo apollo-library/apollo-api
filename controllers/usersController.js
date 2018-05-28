@@ -24,11 +24,10 @@ exports.addUser = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	// TODO: Add validation on all params
 	try {
 		await db.collection('users').insertOne({_id: req.body.id});
 	} catch (err) {
-		if (err) console.log(err.message);
+		console.log(err.message);
 		res.json({error: "Couldn't add book"});
 		return;
 	}

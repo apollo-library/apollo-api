@@ -27,17 +27,9 @@ mongo.connect((err) => {
 	// Protect against some well-known vulnerabilities
 	app.use(helmet());
 
-	// CORS Headers (delete in prod)
-	function setCORS(res) {
-		res.header("Access-Control-Allow-Origin", "*");
-		res.header("Access-Control-Allow-Headers", "X-Requested-With");
-		return res;
-	}
-
 	app.use('/*', auth, (req, res, next) => {
 		console.log(req.method + " request to " + req.originalUrl + " with body:");
 		console.log(req.body);
-		res = setCORS(res); // TODO: Delete in Prod
 		next();
 	})
 

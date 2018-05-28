@@ -32,7 +32,7 @@ exports.addTag = asyncHandler(async (req, res) => {
 			name: req.body.name
 		});
 	} catch (err) {
-		if (err) console.log(err.message);
+		console.log(err.message);
 		res.json({error: "Couldn't add book"});
 		return;
 	}

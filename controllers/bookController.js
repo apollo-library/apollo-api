@@ -122,7 +122,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 
 			await db.collection('reservations').remove({_id: book.reservationID})
 		} catch (err) {
-			if (err) console.log(err.message);
+			console.log(err.message);
 			session.abortTransaction();
 			res.json({error: "Couldn't withdraw book"});
 			return;
@@ -182,7 +182,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 				loanID: null
 			}}, {session});
 		} catch (err) {
-			if (err) console.log(err.message);
+			console.log(err.message);
 			session.abortTransaction();
 			res.json({error: "Couldn't deposit book"});
 			return;
@@ -239,7 +239,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 				reservationID: reservationID
 			}}, {session});
 		} catch (err) {
-			if (err) console.log(err.message);
+			console.log(err.message);
 			session.abortTransaction();
 			res.json({error: "Couldn't reserve book"});
 			return;
@@ -313,7 +313,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 				reservationID: null
 			}}, {session});
 		} catch (err) {
-			if (err) console.log(err.message);
+			console.log(err.message);
 			session.abortTransaction();
 			res.json({error: "Couldn't remove reservation"});
 			return;

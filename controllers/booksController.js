@@ -24,22 +24,46 @@ exports.addBook = asyncHandler(async (req, res) => {
 		return;
 	}
 
-	// TODO: Add validation on all params
+	const tags = await db.collection('tags').find().sort({_id: -1}).toArray();
+	const tagNames = tags.map(i => i.name);
+	const newTags = req.body.tags.filter(tag => !tagNames.includes(tag));
+
+	const addedTags = [];
+
+	if (newTags.length) {
+		newTags.forEach(async tag => {
+			try {
+				await db.collection('tags').insertOne({
+					_id: tags.length ? tags[0]._id + 1: 0,
+					name: tag
+				});
+				console.log("Added tag " + tag)
+				addedTags.push(tag)
+			} catch (err) {
+				console.log(err);
+			}
+		})
+	}
+
 	try {
 		await db.collection('books').insertOne({
 			_id: req.body.id,
+			ISBN10: req.body.isbn10,
+			ISBN13: req.body.isbn13,
 			title: req.body.title,
 			author: req.body.author,
+			publisher: req.body.publisher,
 			tags: req.body.tags
-			// Other params go here
 		});
 	} catch (err) {
-		if (err) console.log(err.message);
+		console.log(err.message);
 		res.json({error: "Couldn't add book"});
 		return;
 	}
 
-	res.json({message: "Success"});
+	console.log(addedTags)
+
+	res.json(addedTags.length ? {message:"Success", tags: addedTags} : {message: "Success"});
 });
 
 
