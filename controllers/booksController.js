@@ -27,6 +27,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 	
 	const book = await db.collection('books').findOne({_id: req.body.id});
 	if (book) {
+		console.log("Book '" + req.body.id + "' Already Exists");
 		res.json({
 			code: "004",
 			message: "Book Already Exists"
@@ -35,6 +36,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 	}
 
 	if (req.body.tags && !req.body.tags.constructor === Array) {
+		console.log("Tags '" + req.body.tags + "' Not An Array");
 		res.json({
 			code: "003",
 			message: "Tags Must Be An Array"
@@ -55,7 +57,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 					_id: tags.length ? tags[0]._id + 1: 0,
 					name: tag
 				});
-				console.log("Added tag " + tag)
+				console.log("Added tag '" + tag + "'");
 				addedTags.push(tag)
 			} catch (err) {
 				console.log(err);
@@ -86,8 +88,9 @@ exports.addBook = asyncHandler(async (req, res) => {
 		code: "000",
 		message: "Success"
 	}
-
 	if (addedTags.length) returnObj.tags = addedTags
+
+	console.log("Book '" + req.body.id + "' Successfully Added");
 	res.json(returnObj);
 });
 
@@ -105,6 +108,7 @@ exports.searchBooks = asyncHandler(async (req, res) => {
 	const filtered = req.body.filters ? results.filter(result => {
 		return result.tags ? result.tags.some(r => req.body.filters.includes(r)) : false;
 	}) : results;
+
 	res.send({
 		message: "Success",
 		count: filtered.length,

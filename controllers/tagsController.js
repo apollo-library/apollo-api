@@ -27,6 +27,7 @@ exports.addTag = asyncHandler(async (req, res) => {
 	const tag = await db.collection('tags').findOne({name: req.body.name});
 
 	if (tag) {
+		console.log("Tag '" + req.body.name + "' Already Exists");
 		res.json({
 			code: "004",
 			message: "Tag Already Exists"
@@ -50,6 +51,7 @@ exports.addTag = asyncHandler(async (req, res) => {
 		return;
 	}
 
+	console.log("Tag '" + req.body.name + "' Successfully Added");
 	res.json({
 		code: "000",
 		message: "Success"

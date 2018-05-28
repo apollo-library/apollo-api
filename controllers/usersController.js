@@ -27,6 +27,7 @@ exports.addUser = asyncHandler(async function(req, res) {
 
 	const user = await db.collection('users').findOne({_id: req.body.id});
 	if (user) {
+		console.log("User '" + req.body.id + "' Already Exists");
 		res.json({
 			code: "004",
 			message: "User Already Exists"
@@ -45,6 +46,7 @@ exports.addUser = asyncHandler(async function(req, res) {
 		return;
 	}
 
+	console.log("User '" + req.body.id + "' Successfully Added");
 	res.json({
 		code: "000",
 		message: "Success"
