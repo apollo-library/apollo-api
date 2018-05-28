@@ -18,7 +18,7 @@ exports.getBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	res.json({message: "success", book: book});
+	res.json({message: "Success", book: book});
 });
 
 exports.editBook = asyncHandler(async function(req, res) {
@@ -40,7 +40,7 @@ exports.editBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	res.json({message: "success"});
+	res.json({message: "Success"});
 });
 
 exports.deleteBook = asyncHandler(async function(req, res) {
@@ -58,7 +58,7 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	res.json({message: "success"});
+	res.json({message: "Success"});
 });
 
 // Book loaning and management
@@ -130,7 +130,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "success"})
+		res.json({message: "Success"})
 	);
 });
 
@@ -186,7 +186,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "success"})
+		res.json({message: "Success"})
 	);
 });
 
@@ -243,7 +243,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "success"})
+		res.json({message: "Success"})
 	);
 });
 
@@ -264,7 +264,7 @@ exports.getReservation = asyncHandler(async (req, res) => {
 		return;
 	}
 
-	res.json({message: "success", reservation: reservation});
+	res.json({message: "Success", reservation: reservation});
 });
 
 exports.deleteReservation = asyncHandler(async (req, res) => {
@@ -317,7 +317,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "success"})
+		res.json({message: "Success"})
 	);
 });
 
@@ -358,7 +358,7 @@ exports.renewBook = asyncHandler(async (req, res) => {
 		res.json({error: "Couldn't renew book"});
 		return;
 	}
-	res.json({message: "success"});
+	res.json({message: "Success"});
 });
 
 // Loans information
@@ -375,7 +375,7 @@ exports.getCurrentLoan = asyncHandler(async function(req, res) {
 	}
 
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
-    res.json({message: "success", loan: loan});
+    res.json({message: "Success", loan: loan});
 });
 
 // History

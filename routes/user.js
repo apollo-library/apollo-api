@@ -7,7 +7,6 @@ const userController = require('../controllers/userController');
 
 userRoutes.route('/:userID')
 	.get(userController.getUser)
-	.post(userController.editUser)
 	.delete(userController.deleteUser)
 
 userRoutes.route('/:userID/history')
