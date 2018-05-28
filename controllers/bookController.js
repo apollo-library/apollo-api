@@ -25,9 +25,14 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 
 // Book loaning and management
 
-exports.withdrawBook = asyncHandler(async function(req, res) {
+exports.withdrawBook = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
 		res.json({error: "No user ID specified"});
+		return;
+	}
+
+	if (!req.body.due) {
+		res.json({error: "No due date specified"});
 		return;
 	}
 
@@ -54,7 +59,8 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 		try {
 			const loanID = (await db.collection('loans').insertOne({
 				userID: user._id,
-				bookID: book._id
+				bookID: book._id,
+				due: new Date(req.body.due)
 			}, {session})).ops[0]._id;
 
 			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
@@ -133,7 +139,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 	);
 });
 
-exports.reserveBook = asyncHandler(async function(req, res) {
+exports.reserveBook = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
 		res.json({error: "No user ID specified"});
 		return;
@@ -190,7 +196,7 @@ exports.reserveBook = asyncHandler(async function(req, res) {
 	);
 });
 
-exports.getReservation = asyncHandler(async function(req, res) {
+exports.getReservation = asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		res.json({error: "Book doesn't exist"});
@@ -210,7 +216,7 @@ exports.getReservation = asyncHandler(async function(req, res) {
 	res.json({message: "success", reservation: reservation});
 });
 
-exports.deleteReservation = asyncHandler(async function(req, res) {
+exports.deleteReservation = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
 		res.json({error: "No user ID specified"});
 		return;
@@ -264,8 +270,44 @@ exports.deleteReservation = asyncHandler(async function(req, res) {
 	);
 });
 
-exports.renewBook = asyncHandler(async function(req, res) {
-    res.json({function: "renewBook", bookID: req.params.bookID});
+exports.renewBook = asyncHandler(async (req, res) => {
+    if (!req.body.userID) {
+		res.json({error: "No user ID specified"});
+		return;
+	}
+	
+	if (!req.body.due) {
+		res.json({error: "No due date specified"});
+		return;
+	}
+
+	const user = await db.collection('users').findOne({_id: req.body.userID});
+	if (!user) {
+		res.json({error: "User doesn't exist"});
+		return;
+	}
+
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+
+	if (!book.loanID) {
+		res.json({error: "Book not on loan"});
+		return;
+	}
+
+	try {
+		await db.collection('loans').updateOne({_id: book.loanID}, {$set: {
+			due: new Date(req.body.due)
+		}});
+	} catch (err) {
+		console.log(err);
+		res.json({error: "Couldn't renew book"});
+		return;
+	}
+	res.json({message: "success"});
 });
 
 // Loans information

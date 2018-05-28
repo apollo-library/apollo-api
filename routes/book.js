@@ -26,7 +26,7 @@ bookRoutes.route('/:bookID/reservation')
 	.delete(bookController.deleteReservation)
 
 bookRoutes.route('/:bookID/renew')
-	.get(bookController.renewBook)  // <- could be .post to allow custom renew lengths
+	.post(bookController.renewBook)
 
 // Loans information
 bookRoutes.route('/:bookID/history')
