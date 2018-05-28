@@ -12,7 +12,7 @@ exports.getTags = asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
-		tags: await db.collection('tags').find().toArray()
+		data: await db.collection('tags').find().toArray()
 	});
 });
 

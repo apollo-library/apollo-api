@@ -108,6 +108,6 @@ exports.searchBooks = asyncHandler(async (req, res) => {
 	res.send({
 		message: "Success",
 		count: filtered.length,
-		results: filtered
+		data: filtered
 	});
 })

@@ -24,7 +24,7 @@ exports.getBook = asyncHandler(async function(req, res) {
 	res.json({
 		code: "000",
 		message: "Book Found",
-		book: book
+		data: book
 	});
 });
 
@@ -537,7 +537,7 @@ exports.getCurrentLoan = asyncHandler(async function(req, res) {
     res.json({
     	code: "000",
     	message: "Success",
-    	loan: loan
+    	data: loan
     });
 });
 

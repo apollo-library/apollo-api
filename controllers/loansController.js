@@ -12,7 +12,7 @@ exports.getLoans = asyncHandler(async function(req, res) {
 	res.json({
 		code: "000",
 		message: "Success",
-		loans: await db.collection('loans').find().toArray()
+		data: await db.collection('loans').find().toArray()
 	});
 });
 
@@ -25,6 +25,6 @@ exports.getOverdueLoans = asyncHandler(async function(req, res) {
 	res.json({
 		code: "000",
 		message: "Success",
-		overdue: overdue
+		data: overdue
 	});
 });
