@@ -363,7 +363,19 @@ exports.renewBook = asyncHandler(async (req, res) => {
 
 // Loans information
 exports.getCurrentLoan = asyncHandler(async function(req, res) {
-    res.json({function: "getCurrentLoan", bookID: req.params.bookID});
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+
+	if (!book.loanID) {
+		res.json({error: "Book not on loan"});
+		return;
+	}
+
+	const loan = await db.collection('loans').findOne({_id: book.loanID});
+    res.json({message: "success", loan: loan});
 });
 
 // History

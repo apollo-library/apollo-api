@@ -29,6 +29,9 @@ bookRoutes.route('/:bookID/renew')
 	.post(bookController.renewBook)
 
 // Loans information
+bookRoutes.route('/:bookID/loan')
+	.get(bookController.getCurrentLoan)
+
 bookRoutes.route('/:bookID/history')
 	.get(bookController.getBookHistory)
 
