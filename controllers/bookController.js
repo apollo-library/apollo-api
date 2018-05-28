@@ -41,7 +41,8 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 		res.json({error: "Book doesn't exist"});
 		return;
 	}
-	if (book.loan) {
+
+	if (book.loanID) {
 		res.json({error: "Book already on loan"});
 		return;
 	}
@@ -55,11 +56,12 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 				bookID: req.params.bookID
 			}, {session})).ops[0]._id;
 
-			await db.collection('books').updateOne({_id: req.params.bookID}, {$set: {
-				loanID: loanID
-			}}, {session});
 			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
 				loanIDs: loanID
+			}}, {session});
+
+			await db.collection('books').updateOne({_id: req.params.bookID}, {$set: {
+				loanID: loanID
 			}}, {session});
 		} catch (err) {
 			if (err) console.log(err.message);
@@ -69,11 +71,65 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 		}
 
 		await session.commitTransaction();
-	}).then(() => res.json({message: "success"}));
+	}).then(() =>
+		res.json({message: "success"})
+	);
 });
 
-exports.depositBook = asyncHandler(async function(req, res) {
-	res.json({function: "depositBook", bookID: req.params.bookID});
+exports.depositBook = asyncHandler(async (req, res) => {
+	if (!req.body.userID) {
+		res.json({error: "No user ID specified"});
+		return;
+	}
+
+	const user = await db.collection('users').findOne({_id: req.body.userID});
+	if (!user) {
+		res.json({error: "User doesn't exist"});
+		return;
+	}
+
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+	if (!book.loanID) {
+		res.json({error: "Book not on loan"});
+		return;
+	}
+
+	const loan = await db.collection('loans').findOne({_id: book.loanID});
+	if (!loan) {
+		res.json({error: "Loan doesn't exist"});
+		return;
+	}
+
+	client.withSession(async session => {
+		session.startTransaction();
+
+		try {
+			await db.collection('loans').updateOne({_id: loan._id}, {$set: {
+				returnDate: new Date()
+			}}, {session});
+
+			await db.collection('users').updateOne({_id: user._id}, {$pull: {
+				loanIDs: loan._id
+			}}, {session});
+
+			await db.collection('books').updateOne({_id: book._id}, {$unset: {
+				loanID: null
+			}}, {session});
+		} catch (err) {
+			if (err) console.log(err.message);
+			session.abortTransaction();
+			res.json({error: "Couldn't deposit book"});
+			return;
+		}
+
+		await session.commitTransaction();
+	}).then(() =>
+		res.json({message: "success"})
+	);
 });
 
 exports.reserveBook = asyncHandler(async function(req, res) {
