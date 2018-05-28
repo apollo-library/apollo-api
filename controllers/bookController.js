@@ -12,15 +12,53 @@ const asyncHandler = require('../middleware/asyncHandler');
 // Book info
 
 exports.getBook = asyncHandler(async function(req, res) {
-	res.json({function: "getBook", bookID: req.params.bookID});
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+
+	res.json({message: "success", book: book});
 });
 
 exports.editBook = asyncHandler(async function(req, res) {
-	res.json({function: "editBook", bookID: req.params.bookID, body: req.body});
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+
+	try {
+		await db.collection('books').updateOne({_id: book._id}, {$set: {
+			title: req.body.title || book.title,
+			author: req.body.author || book.author,
+			tags: req.body.tags || book.tags
+		}});
+	} catch (err) {
+		console.log(err);
+		res.json({error: "Couldn't edit book"});
+		return;
+	}
+
+	res.json({message: "success"});
 });
 
 exports.deleteBook = asyncHandler(async function(req, res) {
-	res.json({function: "deleteBook", bookID: req.params.bookID});
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+
+	try {
+		await db.collection('books').remove({_id: book._id});
+	} catch (err) {
+		console.log(err);
+		res.json({error: "Couldn't delete book"});
+		return;
+	}
+
+	res.json({message: "success"});
 });
 
 // Book loaning and management
