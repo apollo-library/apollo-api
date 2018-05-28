@@ -30,8 +30,12 @@ mongo.connect((err) => {
 
 	app.use('/*', auth, (req, res, next) => {
 		console.log("\n- - - - - -");
-		console.log(new Date().toLocaleString() + ": " + req.method + " request to " + req.originalUrl + " with body:");
-		console.log(req.body);
+		if (req.method == "POST") {
+			console.log(new Date().toLocaleString() + ": POST request to " + req.originalUrl + " with body:");
+			console.log(req.body);
+		} else {
+			console.log(new Date().toLocaleString() + ": " + req.method + " request to " + req.originalUrl);
+		}
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
 		next();

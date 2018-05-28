@@ -184,23 +184,6 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 });
 
 exports.depositBook = asyncHandler(async (req, res) => {
-	if (!req.body.userID) {
-		res.json({
-			code: "003",
-			message: "No User ID Specified"
-		});
-		return;
-	}
-
-	const user = await db.collection('users').findOne({_id: req.body.userID});
-	if (!user) {
-		res.json({
-			code: "002",
-			message: "User Not Found"
-		});
-		return;
-	}
-
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		res.json({
@@ -225,13 +208,6 @@ exports.depositBook = asyncHandler(async (req, res) => {
 		});
 		return;
 	}
-	if (loan.userID != user._id) {
-		res.json({
-			code: "004",
-			message: "Wrong User"
-		});
-		return;
-	}
 
 	client.withSession(async session => {
 		session.startTransaction();
@@ -241,11 +217,11 @@ exports.depositBook = asyncHandler(async (req, res) => {
 				returnDate: new Date()
 			}}, {session});
 
-			await db.collection('users').updateOne({_id: user._id}, {$pull: {
+			await db.collection('users').updateOne({_id: loan.userID}, {$pull: {
 				loanIDs: loan._id
 			}}, {session});
 
-			await db.collection('books').updateOne({_id: book._id}, {$unset: {
+			await db.collection('books').updateOne({_id: loan.bookID}, {$unset: {
 				loanID: null
 			}}, {session});
 		} catch (err) {

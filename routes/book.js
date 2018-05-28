@@ -16,7 +16,7 @@ bookRoutes.route('/:bookID/withdraw')
 	.post(bookController.withdrawBook)
 
 bookRoutes.route('/:bookID/deposit')
-	.post(bookController.depositBook)
+	.get(bookController.depositBook)
 
 bookRoutes.route('/:bookID/reserve')
 	.post(bookController.reserveBook)
