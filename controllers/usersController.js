@@ -1,19 +1,37 @@
 'use strict';
 
 // Mongo Setup
-const	mongodb				= require('mongodb'),
-		MongoClient			= mongodb.MongoClient,
-		MongoNetworkError	= mongodb.MongoNetworkError;
-
-// Import models
+const	mongo	=		require('../mongo'),
+		db		=		mongo.db(),
+		client	=		mongo.client();
 
 // Import middleware
 const asyncHandler = require('../middleware/asyncHandler');
 
 exports.getUsers = asyncHandler(async function(req, res) {
-	res.json({function: "getUsers"});
+	res.json({users: await db.collection('users').find().toArray()});
 });
 
 exports.addUser = asyncHandler(async function(req, res) {
-	res.json({function: "addUser", body: req.body});
+	if (!req.body.id) {
+		res.json({error: "No ID specified"});
+		return;
+	}
+
+	const user = await db.collection('users').findOne({_id: req.body.id});
+	if (user) {
+		res.json({error: "User already exists"});
+		return;
+	}
+
+	// TODO: Add validation on all params
+	try {
+		await db.collection('users').insertOne({_id: req.body.id});
+	} catch (err) {
+		if (err) console.log(err.message);
+		res.json({error: "Couldn't add book"});
+		return;
+	}
+
+	res.json({message: "Success"});
 });

@@ -17,8 +17,8 @@ exports.addBook = asyncHandler(async (req, res) => {
 		res.json({error: "No ID specified"});
 		return;
 	}
+	
 	const book = await db.collection('books').findOne({_id: req.body.id});
-
 	if (book) {
 		res.json({error: "Book already exists"});
 		return;
