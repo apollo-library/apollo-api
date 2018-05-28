@@ -29,12 +29,12 @@ mongo.connect((err) => {
 	// CORS Headers (delete in prod)
 	function setCORS(res) {
 		res.header("Access-Control-Allow-Origin", "*");
-		res.header("Access-Control-Allow-Headers", "X-Requested-With, Auth");
+		res.header("Access-Control-Allow-Headers", "X-Requested-With");
 		return res;
 	}
 
 	app.use('/*', (req, res, next) => {
-		console.log(req.method + " request to " + req.baseUrl + " with body:");
+		console.log(req.method + " request to " + req.originalUrl + " with body:");
 		console.log(req.body);
 		res = setCORS(res); // TODO: Delete in Prod
 		next();
@@ -52,7 +52,7 @@ mongo.connect((err) => {
 	});
 
 	app.use((req, res) => {
-		res.status(404).json({error: req.originalUrl + ' not found'}); // 404 return
+		res.status(404).json({error: req.method + " " + req.originalUrl + ' not found'}); // 404 return
 	});
 
 	// Error handling middleware
