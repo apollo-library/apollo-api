@@ -1,15 +1,16 @@
 'use strict';
 
 // Imports
-const	express						= require('express'),
-		app							= express(),
-		port						= 4000,
-		config						= require('./config'),
+const	express		= require('express'),
+		app			= express(),
+		port		= 4000,
+		config		= require('./config'),
 
-		auth						= require('./middleware').auth,
-		mongo						= require('./mongo'),
-		bodyParser					= require('body-parser'),
-		helmet						= require('helmet');
+		auth		= require('./middleware').auth,
+		mongo		= require('./mongo'),
+		bodyParser	= require('body-parser'),
+		helmet		= require('helmet');
+
 var client;
 
 // Connect to MongoDB
@@ -27,18 +28,12 @@ mongo.connect((err) => {
 	// Protect against some well-known vulnerabilities
 	app.use(helmet());
 
-	// CORS Headers (delete in prod)
-	function setCORS(res) {
-		res.header("Access-Control-Allow-Origin", "*");
-		res.header("Access-Control-Allow-Headers", "X-Requested-With");
-		return res;
-	}
-
 	app.use('/*', auth, (req, res, next) => {
 		console.log("\n- - - - - -");
 		console.log(new Date().toLocaleString() + ": " + req.method + " request to " + req.originalUrl + " with body:");
 		console.log(req.body);
-		res = setCORS(res);
+		res.header("Access-Control-Allow-Origin", "*");
+		res.header("Access-Control-Allow-Headers", "X-Requested-With");
 		next();
 	})
 
@@ -66,14 +61,12 @@ mongo.connect((err) => {
 		res.status(err.status || 500); // Set error response status (default 500)
 		res.json({
 			code: "001",
-			message: "An unexpected error occurred"
+			message: "An Unexpected Error Occurred"
 		});
 	});
 
 	// Start
-	module.exports = app.listen(port, () => {
-		console.log('Apollo API started on: ' + port);
-	});
+	module.exports = app.listen(port, () => console.log('Apollo API Started On: ' + port));
 })
 
 function cleanup() {
