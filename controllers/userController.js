@@ -1,12 +1,12 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	=		require('../mongo'),
-		db		=		mongo.db(),
-		client	=		mongo.client();
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
+		client	= mongo.client();
 
 // Import middleware
-const asyncHandler = require('../middleware/asyncHandler');
+const asyncHandler = require('../middleware').asyncHandler;
 
 exports.getUser = asyncHandler(async function(req, res) {
 	const user = await db.collection('users').findOne({_id: req.params.userID});

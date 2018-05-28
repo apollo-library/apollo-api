@@ -1,13 +1,13 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	=		require('../mongo'),
-		config	=		require('../config'),
-		db		=		mongo.db(),
-		client	=		mongo.client();
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
+		client	= mongo.client(),
+		config	= require('../config');
 
 // Import middleware
-const asyncHandler = require('../middleware/asyncHandler');
+const asyncHandler = require('../middleware').asyncHandler;
 
 // Book info
 

@@ -1,13 +1,11 @@
 'use strict';
 
 // Mongo Setup
-const	mongodb				= require('mongodb'),
-		MongoClient			= mongodb.MongoClient,
-		MongoNetworkError	= mongodb.MongoNetworkError;
-
-// Import models
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
+		client	= mongo.client();
 
 // Import middleware
-const asyncHandler = require('../asyncHandler');
+const asyncHandler = require('../middleware').asyncHandler;
 
 // Controllers

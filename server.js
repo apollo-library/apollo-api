@@ -6,6 +6,7 @@ const	express						= require('express'),
 		port						= 4000,
 		config						= require('./config'),
 
+		auth						= require('./middleware').auth,
 		mongo						= require('./mongo'),
 		bodyParser					= require('body-parser'),
 		helmet						= require('helmet');
@@ -33,7 +34,7 @@ mongo.connect((err) => {
 		return res;
 	}
 
-	app.use('/*', (req, res, next) => {
+	app.use('/*', auth, (req, res, next) => {
 		console.log(req.method + " request to " + req.originalUrl + " with body:");
 		console.log(req.body);
 		res = setCORS(res); // TODO: Delete in Prod

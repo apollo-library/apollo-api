@@ -1,12 +1,12 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	=		require('../mongo'),
-		db		=		mongo.db(),
-		client	=		mongo.client();
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
+		client	= mongo.client();
 
 // Import middleware
-const asyncHandler = require('../middleware/asyncHandler');
+const asyncHandler = require('../middleware').asyncHandler;
 
 exports.getTags = asyncHandler(async (req, res) => {
 	res.json({tags: await db.collection('tags').find().toArray()});

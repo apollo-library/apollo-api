@@ -1,12 +1,12 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	=		require('../mongo'),
-		db		=		mongo.db(),
-		client	=		mongo.client();
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
+		client	= mongo.client();
 
 // Import middleware
-const asyncHandler = require('../middleware/asyncHandler');
+const asyncHandler = require('../middleware').asyncHandler;
 
 exports.getLoans = asyncHandler(async function(req, res) {
 	res.json({loans: await db.collection('loans').find().toArray()});

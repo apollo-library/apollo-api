@@ -1,14 +1,14 @@
 'use strict';
 
 // Mongo Setup
-const	mongodb				= require('mongodb'),
-		MongoClient			= mongodb.MongoClient,
-		MongoNetworkError	= mongodb.MongoNetworkError;
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
+		client	= mongo.client();
 
 // Import models
 
 // Import middleware
-const asyncHandler = require('../middleware/asyncHandler');
+const asyncHandler = require('../middleware').asyncHandler;
 
 exports.getHistory = asyncHandler(async function(req, res) {
 	res.json({function: "getHistory"});
