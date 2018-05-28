@@ -9,18 +9,28 @@ const	mongo	= require('../mongo'),
 const asyncHandler = require('../middleware').asyncHandler;
 
 exports.getUsers = asyncHandler(async function(req, res) {
-	res.json({users: await db.collection('users').find().toArray()});
+	res.json({
+		code: "000",
+		message: "Success",
+		users: await db.collection('users').find().toArray()
+	});
 });
 
 exports.addUser = asyncHandler(async function(req, res) {
 	if (!req.body.id) {
-		res.json({error: "No ID specified"});
+		res.json({
+			code: "003",
+			message: "No ID Specified"
+		});
 		return;
 	}
 
 	const user = await db.collection('users').findOne({_id: req.body.id});
 	if (user) {
-		res.json({error: "User already exists"});
+		res.json({
+			code: "004",
+			message: "User Already Exists"
+		});
 		return;
 	}
 
@@ -28,9 +38,15 @@ exports.addUser = asyncHandler(async function(req, res) {
 		await db.collection('users').insertOne({_id: req.body.id});
 	} catch (err) {
 		console.log(err.message);
-		res.json({error: "Couldn't add book"});
+		res.json({
+			code: "001",
+			message: "Couldn't Add Book"
+		});
 		return;
 	}
 
-	res.json({message: "Success"});
+	res.json({
+		code: "000",
+		message: "Success"
+	});
 });

@@ -9,7 +9,11 @@ const	mongo	= require('../mongo'),
 const asyncHandler = require('../middleware').asyncHandler;
 
 exports.getLoans = asyncHandler(async function(req, res) {
-	res.json({loans: await db.collection('loans').find().toArray()});
+	res.json({
+		code: "000",
+		message: "Success",
+		loans: await db.collection('loans').find().toArray()
+	});
 });
 
 exports.getOverdueLoans = asyncHandler(async function(req, res) {
@@ -18,5 +22,9 @@ exports.getOverdueLoans = asyncHandler(async function(req, res) {
 	var now = new Date();
 	now.setHours(0,0,0,0);
 	const overdue = loans.filter(loan => !loan.returnDate && loan.dueDate < now);
-	res.json({overdue: overdue});
+	res.json({
+		code: "000",
+		message: "Success",
+		overdue: overdue
+	});
 });

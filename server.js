@@ -45,14 +45,20 @@ mongo.connect((err) => {
 	});
 
 	app.use((req, res) => {
-		res.status(404).json({error: req.method + " " + req.originalUrl + ' not found'}); // 404 return
+		res.status(404).json({
+			code: "001",
+			message: req.method + " " + req.originalUrl + ' not found'
+		}); // 404 return
 	});
 
 	// Error handling middleware
 	app.use((err, req, res, next) => {
 		console.log("An Error Occurred: " + err.message);
 		res.status(err.status || 500); // Set error response status (default 500)
-		res.json({error: "An unexpected error occurred"});
+		res.json({
+			code: "001",
+			message: "An unexpected error occurred"
+		});
 	});
 
 	// Start

@@ -14,17 +14,27 @@ const asyncHandler = require('../middleware').asyncHandler;
 exports.getBook = asyncHandler(async function(req, res) {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 
-	res.json({message: "Success", book: book});
+	res.json({
+		code: "000",
+		message: "Book Found",
+		book: book
+	});
 });
 
 exports.editBook = asyncHandler(async function(req, res) {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 
@@ -36,17 +46,26 @@ exports.editBook = asyncHandler(async function(req, res) {
 		}});
 	} catch (err) {
 		console.log(err);
-		res.json({error: "Couldn't edit book"});
+		res.json({
+			code: "001",
+			message: "Couldn't Edit Book"
+		});
 		return;
 	}
 
-	res.json({message: "Success"});
+	res.json({
+		code: "000",
+		message: "Success"
+	});
 });
 
 exports.deleteBook = asyncHandler(async function(req, res) {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 
@@ -54,47 +73,71 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 		await db.collection('books').remove({_id: book._id});
 	} catch (err) {
 		console.log(err);
-		res.json({error: "Couldn't delete book"});
+		res.json({
+			code: "001",
+			message: "Couldn't Delete Book"
+		});
 		return;
 	}
 
-	res.json({message: "Success"});
+	res.json({
+		code: "000",
+		message: "Success"
+	});
 });
 
 // Book loaning and management
 
 exports.withdrawBook = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
-		res.json({error: "No user ID specified"});
+		res.json({
+			code: "003",
+			message: "No User ID Specified"
+		});
 		return;
 	}
 
 	if (!req.body.due) {
-		res.json({error: "No due date specified"});
+		res.json({
+			code: "003",
+			message: "No Due Date Specified"
+		});
 		return;
 	}
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		res.json({error: "User doesn't exist"});
+		res.json({
+			code: "002",
+			message: "User Not Found"
+		});
 		return;
 	}
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 
 	if (book.loanID) {
-		res.json({error: "Book already on loan"});
+		res.json({
+			code: "004",
+			message: "Book Already On Loan"
+		});
 		return;
 	}
 
 	const reservation = book.reservationID ? await db.collection('reservations').findOne({_id: book.reservationID}) : null;
 
 	if (reservation && reservation.userID != user._id) {
-		res.json({error: "Book reserved"});
+		res.json({
+			code: "004",
+			message: "Book Reserved"
+		});
 		return;
 	}
 
@@ -124,45 +167,69 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 		} catch (err) {
 			console.log(err.message);
 			session.abortTransaction();
-			res.json({error: "Couldn't withdraw book"});
+			res.json({
+				code: "001",
+				message: "Couldn't Withdraw Book"
+			});
 			return;
 		}
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "Success"})
+		res.json({
+			code: "000",
+			message: "Success"
+		})
 	);
 });
 
 exports.depositBook = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
-		res.json({error: "No user ID specified"});
+		res.json({
+			code: "003",
+			message: "No User ID Specified"
+		});
 		return;
 	}
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		res.json({error: "User doesn't exist"});
+		res.json({
+			code: "002",
+			message: "User Not Found"
+		});
 		return;
 	}
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 	if (!book.loanID) {
-		res.json({error: "Book not on loan"});
+		res.json({
+			code: "004",
+			message: "Book Not On Loan"
+		});
 		return;
 	}
 
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
 	if (!loan) {
-		res.json({error: "Loan doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Loan Not Found"
+		});
 		return;
 	}
 	if (loan.userID != user._id) {
-		res.json({error: "Wrong user"});
+		res.json({
+			code: "004",
+			message: "Wrong User"
+		});
 		return;
 	}
 
@@ -184,41 +251,62 @@ exports.depositBook = asyncHandler(async (req, res) => {
 		} catch (err) {
 			console.log(err.message);
 			session.abortTransaction();
-			res.json({error: "Couldn't deposit book"});
+			res.json({
+				code: "001",
+				message: "Couldn't Deposit Book"
+			});
 			return;
 		}
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "Success"})
+		res.json({
+			code: "000",
+			message: "Success"
+		})
 	);
 });
 
 exports.reserveBook = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
-		res.json({error: "No user ID specified"});
+		res.json({
+			code: "003",
+			message: "No User ID Specified"
+		});
 		return;
 	}
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		res.json({error: "User doesn't exist"});
+		res.json({
+			code: "002",
+			message: "User Not Found"
+		});
 		return;
 	}
 
 	if (user.reservationIDs && user.reservationIDs.length >= config.reservationLimit) {
-		res.json({error: "Too many books already reserved"});
+		res.json({
+			code: "004",
+			message: "Too Many Books Already Reserved"
+		});
 		return;
 	}
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 
 	if (book.reservationID) {
-		res.json({error: "Book already reserved"});
+		res.json({
+			code: "004",
+			message: "Book Already Reserved"
+		});
 		return;
 	}
 
@@ -241,61 +329,95 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 		} catch (err) {
 			console.log(err.message);
 			session.abortTransaction();
-			res.json({error: "Couldn't reserve book"});
+			res.json({
+				code: "001",
+				message: "Couldn't Reserve Book"
+			});
 			return;
 		}
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "Success"})
+		res.json({
+			code: "000",
+			message: "Success"
+		})
 	);
 });
 
 exports.getReservation = asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 	if (!book.reservationID) {
-		res.json({error: "Book not reserved"});
+		res.json({
+			code: "004",
+			message: "Book Not Reserved"
+		});
 		return;
 	}
 
 	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
 	if (!reservation) {
-		res.json({error: "Reservation doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Reservation Not Found"
+		});
 		return;
 	}
 
-	res.json({message: "Success", reservation: reservation});
+	res.json({
+		code: "000",
+		message: "Success",
+		reservation: reservation
+	});
 });
 
 exports.deleteReservation = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
-		res.json({error: "No user ID specified"});
+		res.json({
+			code: "003",
+			message: "No User ID Specified"
+		});
 		return;
 	}
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		res.json({error: "User doesn't exist"});
+		res.json({
+			code: "002",
+			message: "User Not Found"
+		});
 		return;
 	}
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 	if (!book.reservationID) {
-		res.json({error: "Book not reserved"});
+		res.json({
+			code: "004",
+			message: "Book Not Reserved"
+		});
 		return;
 	}
 
 	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
 	if (!reservation) {
-		res.json({error: "Reservation doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Reservation Not Found"
+		});
 		return;
 	}
 
@@ -315,41 +437,62 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 		} catch (err) {
 			console.log(err.message);
 			session.abortTransaction();
-			res.json({error: "Couldn't remove reservation"});
+			res.json({
+				code: "001",
+				message: "Couldn't Remove Reservation"
+			});
 			return;
 		}
 
 		await session.commitTransaction();
 	}).then(() =>
-		res.json({message: "Success"})
+		res.json({
+			code: "000",
+			message: "Success"
+		})
 	);
 });
 
 exports.renewBook = asyncHandler(async (req, res) => {
     if (!req.body.userID) {
-		res.json({error: "No user ID specified"});
+		res.json({
+			code: "003",
+			message: "No User ID Specified"
+		});
 		return;
 	}
 	
 	if (!req.body.due) {
-		res.json({error: "No due date specified"});
+		res.json({
+			code: "003",
+			message: "No Due Date Specified"
+		});
 		return;
 	}
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		res.json({error: "User doesn't exist"});
+		res.json({
+			code: "002",
+			message: "User Not Found"
+		});
 		return;
 	}
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 
 	if (!book.loanID) {
-		res.json({error: "Book not on loan"});
+		res.json({
+			code: "004",
+			message: "Book not on loan"
+		});
 		return;
 	}
 
@@ -359,27 +502,43 @@ exports.renewBook = asyncHandler(async (req, res) => {
 		}});
 	} catch (err) {
 		console.log(err);
-		res.json({error: "Couldn't renew book"});
+		res.json({
+			code: "001",
+			message: "Couldn't renew book"
+		});
 		return;
 	}
-	res.json({message: "Success"});
+	res.json({
+		code: "000",
+		message: "Success"
+	});
 });
 
 // Loans information
 exports.getCurrentLoan = asyncHandler(async function(req, res) {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		res.json({error: "Book doesn't exist"});
+		res.json({
+			code: "002",
+			message: "Book Not Found"
+		});
 		return;
 	}
 
 	if (!book.loanID) {
-		res.json({error: "Book not on loan"});
+		res.json({
+			code: "004",
+			message: "Book Not On Loan"
+		});
 		return;
 	}
 
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
-    res.json({message: "Success", loan: loan});
+    res.json({
+    	code: "000",
+    	message: "Success",
+    	loan: loan
+    });
 });
 
 // History

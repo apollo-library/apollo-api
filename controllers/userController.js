@@ -11,17 +11,27 @@ const asyncHandler = require('../middleware').asyncHandler;
 exports.getUser = asyncHandler(async function(req, res) {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
-		res.json({error: "User doesn't exist"});
+		res.json({
+			code: "003",
+			message: "User Not Found"
+		});
 		return;
 	}
 
-	res.json({message: "Success", user: user});
+	res.json({
+		code: "000",
+		message: "Success",
+		user: user
+	});
 });
 
 exports.deleteUser = asyncHandler(async function(req, res) {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
-		res.json({error: "User doesn't exist"});
+		res.json({
+			code: "002",
+			message: "User Not Found"
+		});
 		return;
 	}
 
@@ -29,11 +39,17 @@ exports.deleteUser = asyncHandler(async function(req, res) {
 		await db.collection('users').remove({_id: user._id});
 	} catch (err) {
 		console.log(err);
-		res.json({error: "Couldn't delete user"});
+		res.json({
+			code: "001",
+			message: "Couldn't Delete User"
+		});
 		return;
 	}
 
-	res.json({message: "Success"});
+	res.json({
+		code: "000",
+		message: "Success"
+	});
 });
 
 exports.getHistory = asyncHandler(async function(req, res) {

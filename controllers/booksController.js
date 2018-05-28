@@ -9,23 +9,36 @@ const	mongo	= require('../mongo'),
 const asyncHandler = require('../middleware').asyncHandler;
 
 exports.getBooks = asyncHandler(async (req, res) => {
-	res.json({books: await db.collection('books').find().toArray()});
+	res.json({
+		code: "000",
+		message: "Success",
+		books: await db.collection('books').find().toArray()
+	});
 });
 
 exports.addBook = asyncHandler(async (req, res) => {
 	if (!req.body.id) {
-		res.json({error: "No ID specified"});
+		res.json({
+			code: "003",
+			message: "No ID Specified"
+		});
 		return;
 	}
 	
 	const book = await db.collection('books').findOne({_id: req.body.id});
 	if (book) {
-		res.json({error: "Book already exists"});
+		res.json({
+			code: "004",
+			message: "Book Already Exists"
+		});
 		return;
 	}
 
 	if (req.body.tags && !req.body.tags.constructor === Array) {
-		res.json({error: "Tags must be an array"});
+		res.json({
+			code: "003",
+			message: "Tags Must Be An Array"
+		});
 		return;
 	}
 
@@ -62,17 +75,29 @@ exports.addBook = asyncHandler(async (req, res) => {
 		});
 	} catch (err) {
 		console.log(err.message);
-		res.json({error: "Couldn't add book"});
+		res.json({
+			code: "001",
+			message: "Couldn't Add Book"
+		});
 		return;
 	}
 
-	res.json(addedTags.length ? {message:"Success", tags: addedTags} : {message: "Success"});
+	var returnObj = {
+		code: "000",
+		message: "Success"
+	}
+
+	if (addedTags.length) returnObj.tags = addedTags
+	res.json(returnObj);
 });
 
 
 exports.searchBooks = asyncHandler(async (req, res) => {
 	if (!req.body.query) {
-		res.send({error: "No search query"});
+		res.send({
+			code: "003",
+			message: "No Search Query"
+		});
 		return;
 	}
 
