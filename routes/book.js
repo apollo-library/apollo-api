@@ -19,7 +19,7 @@ bookRoutes.route('/:bookID/deposit')
 	.post(bookController.depositBook)
 
 bookRoutes.route('/:bookID/reserve')
-	.get(bookController.reserveBook)
+	.post(bookController.reserveBook)
 
 bookRoutes.route('/:bookID/reservation')
 	.get(bookController.getReservation)

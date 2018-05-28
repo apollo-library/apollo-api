@@ -2,6 +2,7 @@
 
 // Mongo Setup
 const	mongo	=		require('../mongo'),
+		config	=		require('../config'),
 		db		=		mongo.db(),
 		client	=		mongo.client();
 
@@ -52,8 +53,8 @@ exports.withdrawBook = asyncHandler(async function(req, res) {
 
 		try {
 			const loanID = (await db.collection('loans').insertOne({
-				userID: req.body.userID,
-				bookID: req.params.bookID
+				userID: user._id,
+				bookID: book._id
 			}, {session})).ops[0]._id;
 
 			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
@@ -133,15 +134,134 @@ exports.depositBook = asyncHandler(async (req, res) => {
 });
 
 exports.reserveBook = asyncHandler(async function(req, res) {
-	res.json({function: "reserveBook", bookID: req.params.bookID});
+	if (!req.body.userID) {
+		res.json({error: "No user ID specified"});
+		return;
+	}
+
+	const user = await db.collection('users').findOne({_id: req.body.userID});
+	if (!user) {
+		res.json({error: "User doesn't exist"});
+		return;
+	}
+
+	if (user.reservationIDs && user.reservationIDs.length >= config.reservationLimit) {
+		res.json({error: "Too many books already reserved"});
+		return;
+	}
+
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+
+	if (book.reservationID) {
+		res.json({error: "Book already reserved"});
+		return;
+	}
+
+	client.withSession(async session => {
+		session.startTransaction();
+
+		try {
+			const reservationID = (await db.collection('reservations').insertOne({
+				userID: user._id,
+				bookID: book._id
+			}, {session})).ops[0]._id;
+
+			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
+				reservationIDs: reservationID
+			}}, {session});
+
+			await db.collection('books').updateOne({_id: req.params.bookID}, {$set: {
+				reservationID: reservationID
+			}}, {session});
+		} catch (err) {
+			if (err) console.log(err.message);
+			session.abortTransaction();
+			res.json({error: "Couldn't reserve book"});
+			return;
+		}
+
+		await session.commitTransaction();
+	}).then(() =>
+		res.json({message: "success"})
+	);
 });
 
 exports.getReservation = asyncHandler(async function(req, res) {
-	res.json({function: "getReservation", bookID: req.params.bookID});
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+	if (!book.reservationID) {
+		res.json({error: "Book not reserved"});
+		return;
+	}
+
+	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
+	if (!reservation) {
+		res.json({error: "Reservation doesn't exist"});
+		return;
+	}
+
+	res.json({message: "success", reservation: reservation});
 });
 
 exports.deleteReservation = asyncHandler(async function(req, res) {
-	res.json({function: "deleteReservation", bookID: req.params.bookID});
+	if (!req.body.userID) {
+		res.json({error: "No user ID specified"});
+		return;
+	}
+
+	const user = await db.collection('users').findOne({_id: req.body.userID});
+	if (!user) {
+		res.json({error: "User doesn't exist"});
+		return;
+	}
+
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		res.json({error: "Book doesn't exist"});
+		return;
+	}
+	if (!book.reservationID) {
+		res.json({error: "Book not reserved"});
+		return;
+	}
+
+	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
+	if (!reservation) {
+		res.json({error: "Reservation doesn't exist"});
+		return;
+	}
+
+	client.withSession(async session => {
+		session.startTransaction();
+
+		try {
+			await db.collection('reservations').remove({_id: reservation._id}, {session});
+
+			await db.collection('users').updateOne({_id: user._id}, {$pull: {
+				reservationIDs: reservation._id
+			}}, {session});
+
+			await db.collection('books').updateOne({_id: book._id}, {$unset: {
+				reservationID: null
+			}}, {session});
+		} catch (err) {
+			if (err) console.log(err.message);
+			session.abortTransaction();
+			res.json({error: "Couldn't remove reservation"});
+			return;
+		}
+
+		await session.commitTransaction();
+	}).then(() =>
+		res.json({message: "success"})
+	);
 });
 
 exports.renewBook = asyncHandler(async function(req, res) {

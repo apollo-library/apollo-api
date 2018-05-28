@@ -26,6 +26,20 @@ mongo.connect((err) => {
 	// Protect against some well-known vulnerabilities
 	app.use(helmet());
 
+	// CORS Headers (delete in prod)
+	function setCORS(res) {
+		res.header("Access-Control-Allow-Origin", "*");
+		res.header("Access-Control-Allow-Headers", "X-Requested-With, Auth");
+		return res;
+	}
+
+	app.use('/*', (req, res, next) => {
+		console.log(req.method + " request to " + req.baseUrl + " with body:");
+		console.log(req.body);
+		res = setCORS(res); // TODO: Delete in Prod
+		next();
+	})
+
 	// Set up routes
 	require('./routes')(app);
 
@@ -37,25 +51,13 @@ mongo.connect((err) => {
 		});
 	});
 
-	// CORS Headers (delete in prod)
-	function setCORS(res) {
-		res.header("Access-Control-Allow-Origin", "*");
-		res.header("Access-Control-Allow-Headers", "X-Requested-With, Auth");
-		return res;
-	}
-
-	app.use('/*', (req, res, next) => {
-		console.log(req.method + " request to " + req.url + " with body " + req.body); // FIXME: This doesn't log anything
-		res = setCORS(res);
-	})
-
 	app.use((req, res) => {
 		res.status(404).json({error: req.originalUrl + ' not found'}); // 404 return
 	});
 
 	// Error handling middleware
 	app.use((err, req, res, next) => {
-		console.log("An Error Occurred: " + err.toString());
+		console.log("An Error Occurred: " + err.message);
 		res.status(err.status || 500); // Set error response status (default 500)
 		res.json({error: "An unexpected error occurred"});
 	});
