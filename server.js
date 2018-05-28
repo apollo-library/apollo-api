@@ -35,7 +35,8 @@ mongo.connect((err) => {
 	}
 
 	app.use('/*', auth, (req, res, next) => {
-		console.log(req.method + " request to " + req.originalUrl + " with body:");
+		console.log("\n- - - - - -");
+		console.log(new Date().toLocaleString() + ": " + req.method + " request to " + req.originalUrl + " with body:");
 		console.log(req.body);
 		res = setCORS(res);
 		next();
