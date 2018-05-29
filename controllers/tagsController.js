@@ -1,9 +1,12 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	= require('../mongo'),
-		db		= mongo.db(),
-		client	= mongo.client();
+const	mongo		= require('../mongo'),
+		db			= mongo.db(),
+		client		= mongo.client(),
+		utils		= require('../utils'),
+		logError	= utils.logError,
+		logsuccess	= utils.logSuccess;
 
 // Import middleware
 const asyncHandler = require('../middleware').asyncHandler;
@@ -20,17 +23,17 @@ exports.addTag = asyncHandler(async (req, res) => {
 	if (!req.body.name) {
 		res.json({
 			code: "003",
-			message: "No Name Specified"
+			message: "No name specified"
 		});
 		return;
 	}
 	const tag = await db.collection('tags').findOne({name: req.body.name});
 
 	if (tag) {
-		console.log("Tag '" + req.body.name + "' Already Exists");
+		logError("Tag '" + req.body.name + "' already exists");
 		res.json({
 			code: "004",
-			message: "Tag Already Exists"
+			message: "Tag already exists"
 		});
 		return;
 	}
@@ -43,15 +46,15 @@ exports.addTag = asyncHandler(async (req, res) => {
 			name: req.body.name
 		});
 	} catch (err) {
-		console.log(err.message);
+		logError(err.message);
 		res.json({
 			code: "001",
-			message: "Couldn't Add Book"
+			message: "Couldn't add book"
 		});
 		return;
 	}
 
-	console.log("Tag '" + req.body.name + "' Successfully Added");
+	logSuccess("Tag '" + req.body.name + "' successfully added");
 	res.json({
 		code: "000",
 		message: "Success"

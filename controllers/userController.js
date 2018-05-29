@@ -1,9 +1,12 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	= require('../mongo'),
-		db		= mongo.db(),
-		client	= mongo.client();
+const	mongo		= require('../mongo'),
+		db			= mongo.db(),
+		client		= mongo.client(),
+		utils		= require('../utils'),
+		logError	= utils.logError,
+		logsuccess	= utils.logSuccess;
 
 // Import middleware
 const asyncHandler = require('../middleware').asyncHandler;
@@ -11,15 +14,15 @@ const asyncHandler = require('../middleware').asyncHandler;
 exports.getUser = asyncHandler(async function(req, res) {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
-		console.log("User '" + req.params.userID + "' Not Found");
+		logError("User '" + req.params.userID + "' not found");
 		res.json({
 			code: "003",
-			message: "User Not Found"
+			message: "User not found"
 		});
 		return;
 	}
 
-	console.log("User '" + req.params.userID + "' Found");
+	logSuccess("User '" + req.params.userID + "' Found");
 	res.json({
 		code: "000",
 		message: "Success",
@@ -30,10 +33,10 @@ exports.getUser = asyncHandler(async function(req, res) {
 exports.deleteUser = asyncHandler(async function(req, res) {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
-		console.log("User '" + req.params.userID + "' Not Found");
+		logError("User '" + req.params.userID + "' not found");
 		res.json({
 			code: "002",
-			message: "User Not Found"
+			message: "User not found"
 		});
 		return;
 	}
@@ -41,15 +44,15 @@ exports.deleteUser = asyncHandler(async function(req, res) {
 	try {
 		await db.collection('users').remove({_id: user._id});
 	} catch (err) {
-		console.log(err);
+		logError(err);
 		res.json({
 			code: "001",
-			message: "Couldn't Delete User"
+			message: "Couldn't delete user"
 		});
 		return;
 	}
 
-	console.log("User '" + req.params.userID + "' Successfully Deleted");
+	logSuccess("User '" + req.params.userID + "' Successfully deleted");
 	res.json({
 		code: "000",
 		message: "Success"

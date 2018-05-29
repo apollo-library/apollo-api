@@ -1,9 +1,12 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	= require('../mongo'),
-		db		= mongo.db(),
-		client	= mongo.client();
+const	mongo		= require('../mongo'),
+		db			= mongo.db(),
+		client		= mongo.client(),
+		utils		= require('../utils'),
+		logError	= utils.logError,
+		logsuccess	= utils.logSuccess;
 
 // Import middleware
 const asyncHandler = require('../middleware').asyncHandler;
@@ -20,26 +23,26 @@ exports.addBook = asyncHandler(async (req, res) => {
 	if (!req.body.id) {
 		res.json({
 			code: "003",
-			message: "No ID Specified"
+			message: "No ID specified"
 		});
 		return;
 	}
 	
 	const book = await db.collection('books').findOne({_id: req.body.id});
 	if (book) {
-		console.log("Book '" + req.body.id + "' Already Exists");
+		logError("Book '" + req.body.id + "' already exists");
 		res.json({
 			code: "004",
-			message: "Book Already Exists"
+			message: "Book already exists"
 		});
 		return;
 	}
 
 	if (req.body.tags && !req.body.tags.constructor === Array) {
-		console.log("Tags '" + req.body.tags + "' Not An Array");
+		logError("Tags '" + req.body.tags + "' not an array");
 		res.json({
 			code: "003",
-			message: "Tags Must Be An Array"
+			message: "Tags must be an array"
 		});
 		return;
 	}
@@ -57,10 +60,10 @@ exports.addBook = asyncHandler(async (req, res) => {
 					_id: tags.length ? tags[0]._id + 1: 0,
 					name: tag
 				});
-				console.log("Added tag '" + tag + "'");
+				logSuccess("Added tag '" + tag + "'");
 				addedTags.push(tag)
 			} catch (err) {
-				console.log(err);
+				logError(err);
 			}
 		})
 	}
@@ -76,10 +79,10 @@ exports.addBook = asyncHandler(async (req, res) => {
 			tags:		req.body.tags			|| []
 		});
 	} catch (err) {
-		console.log(err.message);
+		logError(err.message);
 		res.json({
 			code: "001",
-			message: "Couldn't Add Book"
+			message: "Couldn't add book"
 		});
 		return;
 	}
@@ -90,7 +93,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 	}
 	if (addedTags.length) returnObj.tags = addedTags
 
-	console.log("Book '" + req.body.id + "' Successfully Added");
+	logSuccess("Book '" + req.body.id + "' successfully added");
 	res.json(returnObj);
 });
 
@@ -99,7 +102,7 @@ exports.searchBooks = asyncHandler(async (req, res) => {
 	if (!req.body.query) {
 		res.send({
 			code: "003",
-			message: "No Search Query"
+			message: "No search query"
 		});
 		return;
 	}

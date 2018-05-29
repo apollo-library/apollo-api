@@ -9,14 +9,17 @@ const	express		= require('express'),
 		auth		= require('./middleware').auth,
 		mongo		= require('./mongo'),
 		bodyParser	= require('body-parser'),
-		helmet		= require('helmet');
+		helmet		= require('helmet'),
+		utils		= require('./utils'),
+		logError	= utils.logError,
+		logSuccess	= utils.logSuccess;
 
 var client;
 
 // Connect to MongoDB
 mongo.connect((err) => {
 	if (err) {
-		console.log(err.message);
+		logError(err.message);
 		process.exit(1);
 	}
 	client = mongo.client();
@@ -29,12 +32,11 @@ mongo.connect((err) => {
 	app.use(helmet());
 
 	app.use('/*', auth, (req, res, next) => {
-		console.log("\n- - - - - -");
 		if (req.method == "POST") {
-			console.log(new Date().toLocaleString() + ": POST request to '" + req.originalUrl + "' with body:");
+			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m POST request to '" + req.originalUrl + "' with body:");
 			console.log(req.body);
 		} else {
-			console.log(new Date().toLocaleString() + ": " + req.method + " request to '" + req.originalUrl + "'");
+			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m POST request to '" + req.originalUrl + "'");
 		}
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
@@ -53,6 +55,7 @@ mongo.connect((err) => {
 	});
 
 	app.use((req, res) => {
+		logError(req.method + " '" + req.originalUrl + "' not found")
 		res.status(404).json({
 			code: "001",
 			message: req.method + " '" + req.originalUrl + "' not found"
@@ -61,7 +64,7 @@ mongo.connect((err) => {
 
 	// Error handling middleware
 	app.use((err, req, res, next) => {
-		console.log("An Error Occurred: " + err.message);
+		logError(err.message);
 		res.status(err.status || 500); // Set error response status (default 500)
 		res.json({
 			code: "001",
@@ -70,7 +73,7 @@ mongo.connect((err) => {
 	});
 
 	// Start
-	module.exports = app.listen(port, () => console.log('Apollo API Started On: ' + port));
+	module.exports = app.listen(port, () => console.log('\x1b[32mApollo API started on: ' + port + '\x1b[0m'));
 })
 
 function cleanup() {
