@@ -4,13 +4,15 @@
 const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
+
+// Import middleware
+		asyncHandler = require('../middleware').asyncHandler,
+
+// Extras
 		config		= require('../config'),
 		utils		= require('../utils'),
 		logError	= utils.logError,
 		logSuccess	= utils.logSuccess;
-
-// Import middleware
-const asyncHandler = require('../middleware').asyncHandler;
 
 function validDate(dateString) {
 	console.log("Checking date '" + dateString + "'");
@@ -54,7 +56,7 @@ exports.getBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	logSuccess("Book '" + req.params.bookID + "' Found");
+	logSuccess("Book '" + req.params.bookID + "' found");
 	res.json({
 		code: "000",
 		message: "Book found",
@@ -172,7 +174,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 	}
 
 	if (book.loanID) {
-		logError("Book '" + req.params.bookID + "' Already on loan");
+		logError("Book '" + req.params.bookID + "' already on loan");
 		res.json({
 			code: "004",
 			message: "Book already on loan"
@@ -303,7 +305,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
 		res.json({
 			code: "003",
-			message: "No user id specified"
+			message: "No user ID specified"
 		});
 		return;
 	}

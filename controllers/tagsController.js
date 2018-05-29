@@ -4,12 +4,14 @@
 const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logsuccess	= utils.logSuccess;
 
 // Import middleware
-const asyncHandler = require('../middleware').asyncHandler;
+		asyncHandler = require('../middleware').asyncHandler,
+
+// Extras
+		utils		= require('../utils'),
+		logError	= utils.logError,
+		logSuccess	= utils.logSuccess;
 
 exports.getTags = asyncHandler(async (req, res) => {
 	res.json({
