@@ -5,28 +5,23 @@ const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
 
-// Import middleware
-		asyncHandler = require('../middleware').asyncHandler,
-
 // Extras
 		config		= require('../config'),
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('../utils');
 
 function validDate(dateString) {
 	console.log("Checking date '" + dateString + "'");
 
 	// yyyy-mm-dd
 	if (!/^\d{4}([./-])\d{2}\1\d{2}$/.test(dateString)) {
-		logError("Date is not yyyy-mm-dd");
+		utils.logError("Date is not yyyy-mm-dd");
 		return false;
 	}
 	console.log("...Date is yyyy-mm-dd");
 
 	const newDate = new Date(dateString);
 	if (isNaN(newDate)) {
-		logError("Date does not convert to valid object");
+		utils.logError("Date does not convert to valid object");
 		return false;
 	}
 	console.log("...Date converted to valid object");
@@ -35,20 +30,20 @@ function validDate(dateString) {
 	now.setHours(0,0,0,0);
 	if (newDate > now) {
 		console.log("...Date is in future");
-		logSuccess("Date is vaild")
+		utils.logSuccess("Date is vaild")
 		return true;
 	} else {
-		logError("Date is not in future");
+		utils.logError("Date is not in future");
 		return false;
 	}
 };
 
 // Book info
 
-exports.getBook = asyncHandler(async function(req, res) {
+exports.getBook = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -56,7 +51,7 @@ exports.getBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	logSuccess("Book '" + req.params.bookID + "' found");
+	utils.logSuccess("Book '" + req.params.bookID + "' found");
 	res.json({
 		code: "000",
 		message: "Book found",
@@ -64,10 +59,10 @@ exports.getBook = asyncHandler(async function(req, res) {
 	});
 });
 
-exports.editBook = asyncHandler(async function(req, res) {
+exports.editBook = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -82,7 +77,7 @@ exports.editBook = asyncHandler(async function(req, res) {
 			tags: req.body.tags || book.tags
 		}});
 	} catch (err) {
-		logError(err);
+		utils.logError(err);
 		res.json({
 			code: "001",
 			message: "Couldn't edit book"
@@ -90,17 +85,17 @@ exports.editBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	logSuccess("Book '" + book.title + "' successfully edited");
+	utils.logSuccess("Book '" + book.title + "' successfully edited");
 	res.json({
 		code: "000",
 		message: "Success"
 	});
 });
 
-exports.deleteBook = asyncHandler(async function(req, res) {
+exports.deleteBook = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -111,7 +106,7 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 	try {
 		await db.collection('books').remove({_id: book._id});
 	} catch (err) {
-		logError(err);
+		utils.logError(err);
 		res.json({
 			code: "001",
 			message: "Couldn't delete book"
@@ -119,7 +114,7 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	logSuccess("Book '" + req.params.bookID + "' successfully deleted");
+	utils.logSuccess("Book '" + req.params.bookID + "' successfully deleted");
 	res.json({
 		code: "000",
 		message: "Success"
@@ -128,7 +123,7 @@ exports.deleteBook = asyncHandler(async function(req, res) {
 
 // Book loaning and management
 
-exports.withdrawBook = asyncHandler(async (req, res) => {
+exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
 		res.json({
 			code: "003",
@@ -155,7 +150,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		logError("User '" + req.body.userID + "' not found");
+		utils.logError("User '" + req.body.userID + "' not found");
 		res.json({
 			code: "002",
 			message: "User not found"
@@ -165,7 +160,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -174,7 +169,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 	}
 
 	if (book.loanID) {
-		logError("Book '" + req.params.bookID + "' already on loan");
+		utils.logError("Book '" + req.params.bookID + "' already on loan");
 		res.json({
 			code: "004",
 			message: "Book already on loan"
@@ -185,7 +180,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 	const reservation = book.reservationID ? await db.collection('reservations').findOne({_id: book.reservationID}) : null;
 
 	if (reservation && reservation.userID != user._id) {
-		logError("Book '" + req.params.bookID + "' reserved");
+		utils.logError("Book '" + req.params.bookID + "' reserved");
 		res.json({
 			code: "004",
 			message: "Book reserved"
@@ -218,7 +213,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 
 			await db.collection('reservations').remove({_id: book.reservationID})
 		} catch (err) {
-			logError(err.message);
+			utils.logError(err.message);
 			session.abortTransaction();
 			res.json({
 				code: "001",
@@ -229,7 +224,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() => {
-		logSuccess("Book '" + req.params.bookID + "' successfully withdrawn");
+		utils.logSuccess("Book '" + req.params.bookID + "' successfully withdrawn");
 		res.json({
 			code: "000",
 			message: "Success"
@@ -237,10 +232,10 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 	});
 });
 
-exports.depositBook = asyncHandler(async (req, res) => {
+exports.depositBook = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -248,7 +243,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 		return;
 	}
 	if (!book.loanID) {
-		logError("Book '" + req.params.bookID + "' not on loan");
+		utils.logError("Book '" + req.params.bookID + "' not on loan");
 		res.json({
 			code: "004",
 			message: "Book not on loan"
@@ -258,7 +253,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
 	if (!loan) {
-		logError("Loan for book '" + req.params.bookID + "' not found");
+		utils.logError("Loan for book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Loan not found"
@@ -282,7 +277,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 				loanID: null
 			}}, {session});
 		} catch (err) {
-			logError(err.message);
+			utils.logError(err.message);
 			session.abortTransaction();
 			res.json({
 				code: "001",
@@ -293,7 +288,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() => {
-		logSuccess("Book '" + req.params.bookID + "' successfully deposited");
+		utils.logSuccess("Book '" + req.params.bookID + "' successfully deposited");
 		res.json({
 			code: "000",
 			message: "Success"
@@ -301,7 +296,7 @@ exports.depositBook = asyncHandler(async (req, res) => {
 	});
 });
 
-exports.reserveBook = asyncHandler(async (req, res) => {
+exports.reserveBook = utils.asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
 		res.json({
 			code: "003",
@@ -312,7 +307,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		logError("User '" + req.body.userID + "' not found");
+		utils.logError("User '" + req.body.userID + "' not found");
 		res.json({
 			code: "002",
 			message: "User not found"
@@ -321,7 +316,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 	}
 
 	if (user.reservationIDs && user.reservationIDs.length >= config.reservationLimit) {
-		logError("User '" + req.body.userID + "' at reservation limit");
+		utils.logError("User '" + req.body.userID + "' at reservation limit");
 		res.json({
 			code: "004",
 			message: "Too many books already reserved"
@@ -331,7 +326,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -340,7 +335,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 	}
 
 	if (book.reservationID) {
-		logError("Book '" + req.params.bookID + "' already reserved");
+		utils.logError("Book '" + req.params.bookID + "' already reserved");
 		res.json({
 			code: "004",
 			message: "Book already reserved"
@@ -365,7 +360,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 				reservationID: reservationID
 			}}, {session});
 		} catch (err) {
-			logError(err.message);
+			utils.logError(err.message);
 			session.abortTransaction();
 			res.json({
 				code: "001",
@@ -376,7 +371,7 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() => {
-		logSuccess("Book '" + req.params.bookID + "' successfully reserved");
+		utils.logSuccess("Book '" + req.params.bookID + "' successfully reserved");
 		res.json({
 			code: "000",
 			message: "Success"
@@ -384,10 +379,10 @@ exports.reserveBook = asyncHandler(async (req, res) => {
 	});
 });
 
-exports.getReservation = asyncHandler(async (req, res) => {
+exports.getReservation = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -395,7 +390,7 @@ exports.getReservation = asyncHandler(async (req, res) => {
 		return;
 	}
 	if (!book.reservationID) {
-		logError("Book '" + req.params.bookID + "' not reserved");
+		utils.logError("Book '" + req.params.bookID + "' not reserved");
 		res.json({
 			code: "004",
 			message: "Book not reserved"
@@ -405,7 +400,7 @@ exports.getReservation = asyncHandler(async (req, res) => {
 
 	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
 	if (!reservation) {
-		logError("Reservation for book '" + req.params.bookID + "' not found");
+		utils.logError("Reservation for book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Reservation not found"
@@ -413,7 +408,7 @@ exports.getReservation = asyncHandler(async (req, res) => {
 		return;
 	}
 
-	logSuccess("Book '" + req.params.bookID + "' successfully reserved");
+	utils.logSuccess("Book '" + req.params.bookID + "' successfully reserved");
 	res.json({
 		code: "000",
 		message: "Success",
@@ -421,7 +416,7 @@ exports.getReservation = asyncHandler(async (req, res) => {
 	});
 });
 
-exports.deleteReservation = asyncHandler(async (req, res) => {
+exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 	if (!req.body.userID) {
 		res.json({
 			code: "003",
@@ -432,7 +427,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
-		logError("User '" + req.params.userID + "' not found");
+		utils.logError("User '" + req.params.userID + "' not found");
 		res.json({
 			code: "002",
 			message: "User not found"
@@ -442,7 +437,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -450,7 +445,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 		return;
 	}
 	if (!book.reservationID) {
-		logError("Book '" + req.params.bookID + "' not reserved");
+		utils.logError("Book '" + req.params.bookID + "' not reserved");
 		res.json({
 			code: "004",
 			message: "Book not reserved"
@@ -460,7 +455,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 
 	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
 	if (!reservation) {
-		logError("Reservation for book '" + req.params.bookID + "' not reserved");
+		utils.logError("Reservation for book '" + req.params.bookID + "' not reserved");
 		res.json({
 			code: "002",
 			message: "Reservation not found"
@@ -482,7 +477,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 				reservationID: null
 			}}, {session});
 		} catch (err) {
-			logError(err.message);
+			utils.logError(err.message);
 			session.abortTransaction();
 			res.json({
 				code: "001",
@@ -493,7 +488,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 
 		await session.commitTransaction();
 	}).then(() => {
-		logSuccess("Reservation for book '" + req.params.bookID + "' successfully deleted");
+		utils.logSuccess("Reservation for book '" + req.params.bookID + "' successfully deleted");
 		res.json({
 			code: "000",
 			message: "Success"
@@ -501,7 +496,7 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 	});
 });
 
-exports.renewBook = asyncHandler(async (req, res) => {
+exports.renewBook = utils.asyncHandler(async (req, res) => {
 	if (!req.body.due) {
 		res.json({
 			code: "003",
@@ -528,7 +523,7 @@ exports.renewBook = asyncHandler(async (req, res) => {
 	}
 
 	if (!book.loanID) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "004",
 			message: "Book not on loan"
@@ -541,7 +536,7 @@ exports.renewBook = asyncHandler(async (req, res) => {
 			dueDate: new Date(req.body.due)
 		}});
 	} catch (err) {
-		logError(err);
+		utils.logError(err);
 		res.json({
 			code: "001",
 			message: "Couldn't renew book"
@@ -549,7 +544,7 @@ exports.renewBook = asyncHandler(async (req, res) => {
 		return;
 	}
 
-	logSuccess("Book '" + req.params.bookID + "' successfully renewed");
+	utils.logSuccess("Book '" + req.params.bookID + "' successfully renewed");
 	res.json({
 		code: "000",
 		message: "Success"
@@ -557,10 +552,10 @@ exports.renewBook = asyncHandler(async (req, res) => {
 });
 
 // Loans information
-exports.getCurrentLoan = asyncHandler(async function(req, res) {
+exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
-		logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -569,7 +564,7 @@ exports.getCurrentLoan = asyncHandler(async function(req, res) {
 	}
 
 	if (!book.loanID) {
-		logError("Book '" + req.params.bookID + "' not on loan");
+		utils.logError("Book '" + req.params.bookID + "' not on loan");
 		res.json({
 			code: "004",
 			message: "Book not on loan"
@@ -579,7 +574,7 @@ exports.getCurrentLoan = asyncHandler(async function(req, res) {
 
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
 
-	logSuccess("Loan for book '" + req.params.bookID + "' found");
+	utils.logSuccess("Loan for book '" + req.params.bookID + "' found");
 	res.json({
 		code: "000",
 		message: "Success",
@@ -589,10 +584,10 @@ exports.getCurrentLoan = asyncHandler(async function(req, res) {
 
 // History
 
-exports.getBookHistory = asyncHandler(async function(req, res) {
+exports.getBookHistory = utils.asyncHandler(async (req, res) => {
 	res.json({function: "getBookHistory", bookID: req.params.bookID});
 });
 
-exports.getBookHistoryUsers = asyncHandler(async function(req, res) {
+exports.getBookHistoryUsers = utils.asyncHandler(async (req, res) => {
 	res.json({function: "getBookHistoryUsers", bookID: req.params.bookID});
 });

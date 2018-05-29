@@ -6,20 +6,17 @@ const	express		= require('express'),
 		port		= 4000,
 		config		= require('./config'),
 
-		auth		= require('./middleware').auth,
 		mongo		= require('./mongo'),
 		bodyParser	= require('body-parser'),
 		helmet		= require('helmet'),
-		utils		= require('./utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('./utils');
 
 var client;
 
 // Connect to MongoDB
 mongo.connect((err) => {
 	if (err) {
-		logError(err.message);
+		utils.logError(err.message);
 		process.exit(1);
 	}
 	client = mongo.client();
@@ -31,15 +28,36 @@ mongo.connect((err) => {
 	// Protect against some well-known vulnerabilities
 	app.use(helmet());
 
-	app.use('/*', auth, (req, res, next) => {
+	app.use('/*', (req, res, next) => {
+		// Auth
+		const auth = true;
+
+		if (!auth) {
+			if (req.method == "POST") {
+				console.log("\n\x1b[31m" + new Date().toLocaleString() + ":\x1b[0m Unauthorised POST request to '" + req.originalUrl + "' with body:");
+				console.log(req.body);
+			} else {
+				console.log("\n\x1b[31m" + new Date().toLocaleString() + ":\x1b[0m Unauthorised " + req.method + " request to '" + req.originalUrl + "'");
+			}
+
+			res.status(401).json({
+				code: "004",
+				message: "Unauthorised"
+			}); // 401 return
+			return;
+		}
+
 		if (req.method == "POST") {
 			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m POST request to '" + req.originalUrl + "' with body:");
 			console.log(req.body);
 		} else {
-			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m POST request to '" + req.originalUrl + "'");
+			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m " + req.method + " request to '" + req.originalUrl + "'");
 		}
+
+		// CORS
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
+		
 		next();
 	})
 
@@ -55,7 +73,7 @@ mongo.connect((err) => {
 	});
 
 	app.use((req, res) => {
-		logError(req.method + " '" + req.originalUrl + "' not found")
+		utils.logError(req.method + " '" + req.originalUrl + "' not found")
 		res.status(404).json({
 			code: "001",
 			message: req.method + " '" + req.originalUrl + "' not found"
@@ -64,7 +82,7 @@ mongo.connect((err) => {
 
 	// Error handling middleware
 	app.use((err, req, res, next) => {
-		logError(err.message);
+		utils.logError(err.message);
 		res.status(err.status || 500); // Set error response status (default 500)
 		res.json({
 			code: "001",
@@ -73,7 +91,7 @@ mongo.connect((err) => {
 	});
 
 	// Start
-	module.exports = app.listen(port, () => console.log('\x1b[32mApollo API started on: ' + port + '\x1b[0m'));
+	app.listen(port, () => console.log('\x1b[32mApollo API started on: ' + port + '\x1b[0m'));
 })
 
 function cleanup() {

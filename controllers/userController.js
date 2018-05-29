@@ -5,18 +5,13 @@ const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
 
-// Import middleware
-		asyncHandler = require('../middleware').asyncHandler,
-
 // Extras
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('../utils');
 
-exports.getUser = asyncHandler(async function(req, res) {
+exports.getUser = utils.asyncHandler(async (req, res) => {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
-		logError("User '" + req.params.userID + "' not found");
+		utils.logError("User '" + req.params.userID + "' not found");
 		res.json({
 			code: "003",
 			message: "User not found"
@@ -24,7 +19,7 @@ exports.getUser = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	logSuccess("User '" + req.params.userID + "' found");
+	utils.logSuccess("User '" + req.params.userID + "' found");
 	res.json({
 		code: "000",
 		message: "Success",
@@ -32,10 +27,10 @@ exports.getUser = asyncHandler(async function(req, res) {
 	});
 });
 
-exports.deleteUser = asyncHandler(async function(req, res) {
+exports.deleteUser = utils.asyncHandler(async (req, res) => {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
-		logError("User '" + req.params.userID + "' not found");
+		utils.logError("User '" + req.params.userID + "' not found");
 		res.json({
 			code: "002",
 			message: "User not found"
@@ -46,7 +41,7 @@ exports.deleteUser = asyncHandler(async function(req, res) {
 	try {
 		await db.collection('users').remove({_id: user._id});
 	} catch (err) {
-		logError(err);
+		utils.logError(err);
 		res.json({
 			code: "001",
 			message: "Couldn't delete user"
@@ -54,21 +49,21 @@ exports.deleteUser = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	logSuccess("User '" + req.params.userID + "' successfully deleted");
+	utils.logSuccess("User '" + req.params.userID + "' successfully deleted");
 	res.json({
 		code: "000",
 		message: "Success"
 	});
 });
 
-exports.getHistory = asyncHandler(async function(req, res) {
+exports.getHistory = utils.asyncHandler(async (req, res) => {
 	res.json({function: "getHistory", userID: req.params.userID});
 });
 
-exports.getHistoryLoans = asyncHandler(async function(req, res) {
+exports.getHistoryLoans = utils.asyncHandler(async (req, res) => {
 	res.json({function: "getHistoryLoans", userID: req.params.userID});
 });
 
-exports.getHistoryFines = asyncHandler(async function(req, res) {
+exports.getHistoryFines = utils.asyncHandler(async (req, res) => {
 	res.json({function: "getHistoryFines", userID: req.params.userID});
 });

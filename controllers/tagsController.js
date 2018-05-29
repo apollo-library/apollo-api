@@ -5,15 +5,10 @@ const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
 
-// Import middleware
-		asyncHandler = require('../middleware').asyncHandler,
-
 // Extras
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('../utils');
 
-exports.getTags = asyncHandler(async (req, res) => {
+exports.getTags = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
@@ -21,7 +16,7 @@ exports.getTags = asyncHandler(async (req, res) => {
 	});
 });
 
-exports.addTag = asyncHandler(async (req, res) => {
+exports.addTag = utils.asyncHandler(async (req, res) => {
 	if (!req.body.name) {
 		res.json({
 			code: "003",
@@ -32,7 +27,7 @@ exports.addTag = asyncHandler(async (req, res) => {
 	const tag = await db.collection('tags').findOne({name: req.body.name});
 
 	if (tag) {
-		logError("Tag '" + req.body.name + "' already exists");
+		utils.logError("Tag '" + req.body.name + "' already exists");
 		res.json({
 			code: "004",
 			message: "Tag already exists"
@@ -48,7 +43,7 @@ exports.addTag = asyncHandler(async (req, res) => {
 			name: req.body.name
 		});
 	} catch (err) {
-		logError(err.message);
+		utils.logError(err.message);
 		res.json({
 			code: "001",
 			message: "Couldn't add book"
@@ -56,7 +51,7 @@ exports.addTag = asyncHandler(async (req, res) => {
 		return;
 	}
 
-	logSuccess("Tag '" + req.body.name + "' successfully added");
+	utils.logSuccess("Tag '" + req.body.name + "' successfully added");
 	res.json({
 		code: "000",
 		message: "Success"

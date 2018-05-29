@@ -5,14 +5,9 @@ const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
 
-// Import middleware
-		asyncHandler = require('../middleware').asyncHandler,
-
 // Extras
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('../utils');
 
-exports.getHistory = asyncHandler(async function(req, res) {
+exports.getHistory = utils.asyncHandler(async (req, res) => {
 	res.json({function: "getHistory"});
 });

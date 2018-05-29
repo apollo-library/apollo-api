@@ -5,15 +5,10 @@ const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
 
-// Import middleware
-		asyncHandler = require('../middleware').asyncHandler,
-
 // Extras
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('../utils');
 
-exports.getUsers = asyncHandler(async function(req, res) {
+exports.getUsers = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
@@ -21,7 +16,7 @@ exports.getUsers = asyncHandler(async function(req, res) {
 	});
 });
 
-exports.addUser = asyncHandler(async function(req, res) {
+exports.addUser = utils.asyncHandler(async (req, res) => {
 	if (!req.body.id) {
 		res.json({
 			code: "003",
@@ -32,7 +27,7 @@ exports.addUser = asyncHandler(async function(req, res) {
 
 	const user = await db.collection('users').findOne({_id: req.body.id});
 	if (user) {
-		logError("User '" + req.body.id + "' already exists");
+		utils.logError("User '" + req.body.id + "' already exists");
 		res.json({
 			code: "004",
 			message: "User already exists"
@@ -43,7 +38,7 @@ exports.addUser = asyncHandler(async function(req, res) {
 	try {
 		await db.collection('users').insertOne({_id: req.body.id});
 	} catch (err) {
-		logError(err.message);
+		utils.logError(err.message);
 		res.json({
 			code: "001",
 			message: "Couldn't add book"
@@ -51,7 +46,7 @@ exports.addUser = asyncHandler(async function(req, res) {
 		return;
 	}
 
-	logSuccess("User '" + req.body.id + "' successfully added");
+	utils.logSuccess("User '" + req.body.id + "' successfully added");
 	res.json({
 		code: "000",
 		message: "Success"

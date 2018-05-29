@@ -5,15 +5,10 @@ const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
 
-// Import middleware
-		asyncHandler = require('../middleware').asyncHandler,
-
 // Extras
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('../utils');
 
-exports.getLoans = asyncHandler(async function(req, res) {
+exports.getLoans = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
@@ -21,7 +16,7 @@ exports.getLoans = asyncHandler(async function(req, res) {
 	});
 });
 
-exports.getOverdueLoans = asyncHandler(async function(req, res) {
+exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
 	const loans = await db.collection('loans').find().toArray();
 
 	var now = new Date();

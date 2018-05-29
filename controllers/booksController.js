@@ -5,15 +5,10 @@ const	mongo		= require('../mongo'),
 		db			= mongo.db(),
 		client		= mongo.client(),
 
-// Import middleware
-		asyncHandler = require('../middleware').asyncHandler,
-
 // Extras
-		utils		= require('../utils'),
-		logError	= utils.logError,
-		logSuccess	= utils.logSuccess;
+		utils		= require('../utils');
 
-exports.getBooks = asyncHandler(async (req, res) => {
+exports.getBooks = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
@@ -21,7 +16,7 @@ exports.getBooks = asyncHandler(async (req, res) => {
 	});
 });
 
-exports.addBook = asyncHandler(async (req, res) => {
+exports.addBook = utils.asyncHandler(async (req, res) => {
 	if (!req.body.id) {
 		res.json({
 			code: "003",
@@ -32,7 +27,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 	
 	const book = await db.collection('books').findOne({_id: req.body.id});
 	if (book) {
-		logError("Book '" + req.body.id + "' already exists");
+		utils.logError("Book '" + req.body.id + "' already exists");
 		res.json({
 			code: "004",
 			message: "Book already exists"
@@ -41,7 +36,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 	}
 
 	if (req.body.tags && !req.body.tags.constructor === Array) {
-		logError("Tags '" + req.body.tags + "' not an array");
+		utils.logError("Tags '" + req.body.tags + "' not an array");
 		res.json({
 			code: "003",
 			message: "Tags must be an array"
@@ -62,10 +57,10 @@ exports.addBook = asyncHandler(async (req, res) => {
 					_id: tags.length ? tags[0]._id + 1: 0,
 					name: tag
 				});
-				logSuccess("Added tag '" + tag + "'");
+				utils.logSuccess("Added tag '" + tag + "'");
 				addedTags.push(tag)
 			} catch (err) {
-				logError(err);
+				utils.logError(err);
 			}
 		})
 	}
@@ -81,7 +76,7 @@ exports.addBook = asyncHandler(async (req, res) => {
 			tags:		req.body.tags			|| []
 		});
 	} catch (err) {
-		logError(err.message);
+		utils.logError(err.message);
 		res.json({
 			code: "001",
 			message: "Couldn't add book"
@@ -95,12 +90,12 @@ exports.addBook = asyncHandler(async (req, res) => {
 	}
 	if (addedTags.length) returnObj.tags = addedTags
 
-	logSuccess("Book '" + req.body.id + "' successfully added");
+	utils.logSuccess("Book '" + req.body.id + "' successfully added");
 	res.json(returnObj);
 });
 
 
-exports.searchBooks = asyncHandler(async (req, res) => {
+exports.searchBooks = utils.asyncHandler(async (req, res) => {
 	if (!req.body.query) {
 		res.send({
 			code: "003",
