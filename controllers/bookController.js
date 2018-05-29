@@ -9,6 +9,35 @@ const	mongo	= require('../mongo'),
 // Import middleware
 const asyncHandler = require('../middleware').asyncHandler;
 
+function validDate(dateString) {
+	console.log("Checking date '" + dateString + "'");
+
+	// yyyy-mm-dd
+	if (!/^\d{4}([./-])\d{2}\1\d{2}$/.test(dateString)) {
+		console.log("    \x1b[41m[ERROR]\x1b[0m Date is not yyyy-mm-dd");
+		return false;
+	}
+	console.log("    Date is yyyy-mm-dd");
+
+	const newDate = new Date(dateString);
+	if (isNaN(newDate)) {
+		console.log("    \x1b[41m[ERROR]\x1b[0m Date does not convert to valid object");
+		return false;
+	}
+	console.log("    Date converted to valid object");
+
+	var now = new Date();
+	now.setHours(0,0,0,0);
+	if (newDate > now) {
+		console.log("    Date is in future");
+		console.log("\x1b[42m[SUCCESS]\x1b[0m Date is vaild")
+		return true;
+	} else {
+		console.log("    \x1b[41m[ERROR]\x1b[0m Date is not in future");
+		return false;
+	}
+};
+
 // Book info
 
 exports.getBook = asyncHandler(async function(req, res) {
@@ -111,6 +140,14 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 		return;
 	}
 
+	if (!validDate(req.body.due)) {
+		res.json({
+			code: "003",
+			message: "Date Not A Valid Format"
+		});
+		return;
+	}
+
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
 		console.log("User '" + req.body.userID + "' Not Found");
@@ -158,6 +195,7 @@ exports.withdrawBook = asyncHandler(async (req, res) => {
 			const loanID = (await db.collection('loans').insertOne({
 				userID: user._id,
 				bookID: book._id,
+				withdrawDate: new Date(),
 				dueDate: new Date(req.body.due)
 			}, {session})).ops[0]._id;
 
@@ -467,6 +505,14 @@ exports.renewBook = asyncHandler(async (req, res) => {
 		return;
 	}
 
+	if (!validDate(req.body.due)) {
+		res.json({
+			code: "003",
+			message: "Date Not A Valid Format"
+		});
+		return;
+	}
+
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		res.json({
@@ -529,11 +575,11 @@ exports.getCurrentLoan = asyncHandler(async function(req, res) {
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
 
 	console.log("Loan For Book '" + req.params.bookID + "' Found");
-    res.json({
-    	code: "000",
-    	message: "Success",
-    	data: loan
-    });
+	res.json({
+		code: "000",
+		message: "Success",
+		data: loan
+	});
 });
 
 // History
