@@ -459,28 +459,10 @@ exports.deleteReservation = asyncHandler(async (req, res) => {
 });
 
 exports.renewBook = asyncHandler(async (req, res) => {
-    if (!req.body.userID) {
-		res.json({
-			code: "003",
-			message: "No User ID Specified"
-		});
-		return;
-	}
-	
 	if (!req.body.due) {
 		res.json({
 			code: "003",
 			message: "No Due Date Specified"
-		});
-		return;
-	}
-
-	const user = await db.collection('users').findOne({_id: req.body.userID});
-	if (!user) {
-		console.log("User '" + req.params.userID + "' Not Found");
-		res.json({
-			code: "002",
-			message: "User Not Found"
 		});
 		return;
 	}
