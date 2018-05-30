@@ -24,6 +24,16 @@ exports.addTag = utils.asyncHandler(async (req, res) => {
 		});
 		return;
 	}
+
+	if (req.body.colour && isNaN(req.body.colour)) {
+		utils.logError("Colour '" + req.body.colour + "' is not a number");
+		res.json({
+			code: "003",
+			message: "Invalid colour"
+		});
+		return;
+	}
+
 	const tag = await db.collection('tags').findOne({name: req.body.name});
 
 	if (tag) {
@@ -40,7 +50,8 @@ exports.addTag = utils.asyncHandler(async (req, res) => {
 	try {
 		await db.collection('tags').insertOne({
 			_id: sortedTags.length ? sortedTags[0]._id + 1: 0,
-			name: req.body.name
+			name: req.body.name,
+			colour: Number(req.body.colour) || 0
 		});
 	} catch (err) {
 		utils.logError(err.message);
