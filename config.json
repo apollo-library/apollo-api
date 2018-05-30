@@ -6,5 +6,6 @@
 		"Cameron Robey",
 		"Max O'Brien"
 	],
+	"port": 4000,
 	"reservationLimit": "1"
 }

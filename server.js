@@ -3,7 +3,6 @@
 // Imports
 const	express		= require('express'),
 		app			= express(),
-		port		= 4000,
 		config		= require('./config'),
 
 		mongo		= require('./mongo'),
@@ -15,19 +14,21 @@ var client;
 
 // Connect to MongoDB
 mongo.connect((err) => {
-	if (err) {
+	if (err) { // Error connecting to MongoDB
 		utils.logError(err.message);
 		process.exit(1);
 	}
+
 	client = mongo.client();
 
-	// Get Request Body
+	// Get request body
 	app.use(bodyParser.urlencoded({extended: true}));
 	app.use(bodyParser.json());
 
 	// Protect against some well-known vulnerabilities
 	app.use(helmet());
 
+	// Function to be run on all requests
 	app.use('/*', (req, res, next) => {
 		// Auth
 		const auth = true;
@@ -47,6 +48,7 @@ mongo.connect((err) => {
 			return;
 		}
 
+		// Log request
 		if (req.method == "POST") {
 			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m POST request to '" + req.originalUrl + "' with body:");
 			console.log(req.body);
@@ -72,6 +74,7 @@ mongo.connect((err) => {
 		});
 	});
 
+	// 404 response
 	app.use((req, res) => {
 		utils.logError(req.method + " '" + req.originalUrl + "' not found")
 		res.status(404).json({
@@ -91,7 +94,7 @@ mongo.connect((err) => {
 	});
 
 	// Start
-	app.listen(port, () => console.log('\x1b[32mApollo API started on: ' + port + '\x1b[0m'));
+	app.listen(config.port, () => console.log('\x1b[32mApollo API started on: ' + config.port + '\x1b[0m'));
 })
 
 function cleanup() {
