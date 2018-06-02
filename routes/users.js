@@ -1,8 +1,4 @@
-// Express setup
-const   express     = require('express'),
-		usersRoutes	= express.Router();
-
-// Import controllers
+const usersRoutes = require('express').Router();
 const usersController = require('../controllers/usersController');
 
 usersRoutes.route('/')

@@ -23,7 +23,7 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
-		user: user
+		data: user
 	});
 });
 

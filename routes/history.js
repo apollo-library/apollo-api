@@ -1,8 +1,4 @@
-// Express setup
-const	express         = require('express'),
-		historyRoutes	= express.Router();
-
-// Import controllers
+const historyRoutes = require('express').Router();
 const historyController = require('../controllers/historyController');
 
 historyRoutes.route('/')

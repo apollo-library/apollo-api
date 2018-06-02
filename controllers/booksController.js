@@ -12,7 +12,7 @@ exports.getBooks = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
-		books: await db.collection('books').find().toArray()
+		data: await db.collection('books').find().toArray()
 	});
 });
 
@@ -68,12 +68,12 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 	try {
 		await db.collection('books').insertOne({
 			_id:		req.body.id,
-			ISBN10:		req.body.isbn10			|| "ISBN13",
-			ISBN13:		req.body.isbn13			|| "ISBN10",
-			title:		req.body.title			|| "Unknown Title",
-			author:		req.body.author			|| "Unknown Author",
-			publisher:	req.body.publisher		|| "Unknown Publisher",
-			tags:		req.body.tags			|| []
+			ISBN10:		req.body.isbn10		|| "ISBN13",
+			ISBN13:		req.body.isbn13		|| "ISBN10",
+			title:		req.body.title		|| "Unknown Title",
+			author:		req.body.author		|| "Unknown Author",
+			publisher:	req.body.publisher	|| "Unknown Publisher",
+			tags:		req.body.tags		|| []
 		});
 	} catch (err) {
 		utils.logError(err.message);
@@ -96,7 +96,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 
 
 exports.searchBooks = utils.asyncHandler(async (req, res) => {
-	if (!req.body.query) {
+	if (!req.body.query && !req.body.filters) {
 		res.send({
 			code: "003",
 			message: "No search query"
@@ -104,12 +104,15 @@ exports.searchBooks = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	const results = await db.collection('books').find({$text: {$search: req.body.query}}).toArray();
+	const results = req.body.query ? 
+		await db.collection('books').find({$text: {$search: req.body.query}}).toArray() :
+		await db.collection('books').find().toArray()
 	const filtered = req.body.filters ? results.filter(result => {
 		return result.tags ? result.tags.some(r => req.body.filters.includes(r)) : false;
 	}) : results;
 
 	res.send({
+		code: "000",
 		message: "Success",
 		count: filtered.length,
 		data: filtered

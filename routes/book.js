@@ -1,8 +1,4 @@
-// Express setup
-const   express     = require('express'),
-		bookRoutes	= express.Router();
-
-// Import controllers
+const bookRoutes = require('express').Router();
 const bookController = require('../controllers/bookController');
 
 // Book info

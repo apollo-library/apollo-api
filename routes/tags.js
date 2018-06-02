@@ -1,8 +1,4 @@
-// Express setup
-const   express     = require('express'),
-		tagsRoutes	= express.Router();
-
-// Import controllers
+const tagsRoutes = require('express').Router();
 const tagsController = require('../controllers/tagsController');
 
 tagsRoutes.route('/')

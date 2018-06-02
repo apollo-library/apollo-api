@@ -1,8 +1,4 @@
-// Express setup
-const   express     = require('express'),
-		loansRoutes	= express.Router();
-
-// Import controllers
+const loansRoutes = require('express').Router();
 const loansController = require('../controllers/loansController');
 
 loansRoutes.route('/')

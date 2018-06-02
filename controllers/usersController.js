@@ -12,7 +12,7 @@ exports.getUsers = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
-		users: await db.collection('users').find().toArray()
+		data: await db.collection('users').find().toArray()
 	});
 });
 
