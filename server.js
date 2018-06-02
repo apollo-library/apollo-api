@@ -59,6 +59,13 @@ mongo.connect((err) => {
 		// CORS
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
+		res.json = (data) => {
+	    	var strData = typeof data == 'object' ? JSON.stringify(data) : data;
+	    	strData = 'while(1);' + strData;
+	    	res.set('Content-Type', 'text/json');
+	    	res.send.call(res, strData);
+	    };
 		
 		next();
 	})
