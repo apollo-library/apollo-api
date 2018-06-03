@@ -46,7 +46,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 
 	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
 	const tagNames = tags.map(i => i.name);
-	const newTags = req.body.tags.filter(tag => !tagNames.includes(tag));
+	const newTags = req.body.tags ? req.body.tags.filter(tag => !tagNames.includes(tag)) : [];
 
 	const addedTags = [];
 
@@ -58,7 +58,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 					name: tag
 				});
 				utils.logSuccess("Added tag '" + tag + "'");
-				addedTags.push(tag)
+				addedTags.push(tag);
 			} catch (err) {
 				utils.logError(err);
 			}
@@ -88,7 +88,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 		code: "000",
 		message: "Success"
 	}
-	if (addedTags.length) returnObj.tags = addedTags
+	if (addedTags.length) returnObj.tags = addedTags;
 
 	utils.logSuccess("Book '" + req.body.id + "' successfully added");
 	res.json(returnObj);
