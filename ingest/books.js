@@ -125,7 +125,6 @@ async function addBook(row) {
 			commaSplit.forEach(splitTag => {
 				// Separate items with dashes
 				newTags = newTags.concat(splitTag.split(' - '));
-				console.log(newTags);
 			});
 		});
 		combinedData.categories = newTags;
