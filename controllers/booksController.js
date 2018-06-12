@@ -105,7 +105,10 @@ exports.searchBooks = utils.asyncHandler(async (req, res) => {
 	}
 
 	const results = req.body.query ? 
-		await db.collection('books').find({$text: {$search: req.body.query}}).toArray() :
+		await db.collection('books').find({$or: [
+			{_id: req.body.query},
+			{$text: {$search: req.body.query}},
+		]}).toArray() :
 		await db.collection('books').find().toArray()
 	const filtered = req.body.filters ? results.filter(result => {
 		return result.tags ? result.tags.some(r => req.body.filters.includes(r)) : false;
