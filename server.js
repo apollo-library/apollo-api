@@ -26,7 +26,11 @@ mongo.connect((err) => {
 	app.use(bodyParser.json());
 
 	// Protect against some well-known vulnerabilities
-	app.use(helmet());
+	app.use(helmet({
+		frameguard: {
+			action: 'deny'
+		}
+	}));
 
 	// Function to be run on all requests
 	app.use('/*', (req, res, next) => {
@@ -52,8 +56,10 @@ mongo.connect((err) => {
 		if (req.method == "POST") {
 			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m POST request to '" + req.originalUrl + "' with body:");
 			console.log(req.body);
+			utils.logToFile(new Date().toLocaleString() + ": POST request to '" + req.originalUrl + "' with body: " + JSON.stringify(req.body));
 		} else {
 			console.log("\n\x1b[33m" + new Date().toLocaleString() + ":\x1b[0m " + req.method + " request to '" + req.originalUrl + "'");
+			utils.logToFile(new Date().toLocaleString() + ": " + req.method + " request to '" + req.originalUrl + "'");
 		}
 
 		// CORS
@@ -101,11 +107,15 @@ mongo.connect((err) => {
 	});
 
 	// Start
-	app.listen(config.port, () => console.log('\x1b[32mApollo API started on: ' + config.port + '\x1b[0m'));
+	app.listen(config.port, () => {
+		console.log('\x1b[32mApollo API started on: ' + config.port + '\x1b[0m');
+		utils.logToFile("\nServer successfully started on " + config.port);
+	});
 })
 
 function cleanup() {
 	if (client) client.close(); // Close the database connection
+	utils.logToFile("Server stopped");
 	process.exit();
 }
 

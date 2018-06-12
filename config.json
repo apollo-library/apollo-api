@@ -7,5 +7,6 @@
 		"Max O'Brien"
 	],
 	"port": 4000,
+	"logFile": "log.txt",
 	"reservationLimit": "1"
 }
