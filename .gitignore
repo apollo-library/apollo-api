@@ -1,4 +1,4 @@
-# OS X
+# macOS
 .DS_Store*
 Icon?
 ._*
@@ -19,4 +19,5 @@ package-lock.json
 *.log
 *.gz
 
-# Other stuff
+# Other
+log.txt
