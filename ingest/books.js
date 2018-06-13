@@ -131,12 +131,13 @@ async function addBook(row) {
 	}
 
 	let result = JSON.parse((await connectAPI('/books', {
-		id:			row[0],
-		isbn10:		combinedData.isbn10 || row[1] || "ISBN10",
-		isbn13:		combinedData.isbn13 || row[2] || "ISBN13",
-		title:		combinedData.title || row[3] || "Unknown Title",
-		author:		((combinedData.authors && combinedData.authors.length) ? combinedData.authors.join(', ') : null) || (row[4] ? row[4].replace(' (Author)', '').replace('by ', '') : "Unknown Author"),
-		publisher:	combinedData.publisher || row[5] || "Unknown Publisher",
+		id:			row[0].trim(),
+		isbn10:		(combinedData.isbn10 || row[1] || "ISBN10").trim(),
+		isbn13:		(combinedData.isbn13 || row[2] || "ISBN13").trim(),
+		title:		(combinedData.title	|| row[3] || "Unknown Title").trim(),
+		author:		(((combinedData.authors && combinedData.authors.length) ? combinedData.authors.join(', ') : null) ||
+					(row[4] ? row[4].replace(' (Author)', '').replace('by ', '') : "Unknown Author")).trim(),
+		publisher:	(combinedData.publisher || row[5] || "Unknown Publisher").trim(),
 		tags:		combinedData.categories || []
 	})).substring(9));
 
