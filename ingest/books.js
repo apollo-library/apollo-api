@@ -127,7 +127,7 @@ async function addBook(row) {
 				newTags = newTags.concat(splitTag.split(' - '));
 			});
 		});
-		combinedData.categories = newTags;
+		combinedData.categories = newTags.map(tag => tag.trim());
 	}
 
 	let result = JSON.parse((await connectAPI('/books', {
