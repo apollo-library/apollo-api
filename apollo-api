@@ -1,0 +1,15 @@
+################
+## APOLLO API ##
+################
+
+server {
+	listen 80;
+	listen [::]:80;
+	server_name 46.101.45.36;
+
+	location / {
+		proxy_set_header X-Forwarded-For $remote_addr;
+		proxy_set_header Host $http_host;
+		proxy_pass http://127.0.0.1:4000/;
+	}
+}
