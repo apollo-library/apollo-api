@@ -43,11 +43,8 @@ sudo systemctl enable nginx
 sudo cp apollo-api /etc/nginx/sites-available/apollo-api
 sudo ln -s /etc/nginx/sites-available/apollo-api /etc/nginx/sites-enabled/apollo-api
 
-# Give NPM install permissions
-sudo chmod 777 /usr/lib/node_modules
-
 # Install PM2
-npm install pm2 -g
+sudo npm install pm2 -g
 
 # Install project
 npm install
