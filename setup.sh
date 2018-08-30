@@ -26,7 +26,7 @@ sudo apt-get update
 sudo apt-get install -y mongodb-org
 
 # Set up mongo config
-echo "replSet=rs0" >> /etc/mongod.conf
+echo -e '\n#Configure Replica Set\nreplication:\n\treplSetName: "rs0"' | sudo tee --append /etc/mongod.conf > /dev/null
 sudo service mongod start
 echo "rs.initiate()" | mongo
 
@@ -41,6 +41,7 @@ sudo systemctl enable nginx
 
 # Copy files to appropriate locations
 sudo cp apollo-api /etc/nginx/sites-available/apollo-api
+sudo rm /etc/nginx/sites-enabled/default
 sudo ln -s /etc/nginx/sites-available/apollo-api /etc/nginx/sites-enabled/apollo-api
 
 # Install PM2
@@ -52,3 +53,4 @@ npm install
 # Start Server
 pm2 start server.js
 pm2 startup
+sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u backend --hp /home/backend
