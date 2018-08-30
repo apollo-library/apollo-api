@@ -49,5 +49,9 @@ sudo chmod 777 /usr/lib/node_modules
 # Install PM2
 npm install pm2 -g
 
+# Install project
+npm install
+
+# Start Server
 pm2 start server.js
 pm2 startup
