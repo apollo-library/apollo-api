@@ -41,3 +41,9 @@ sudo systemctl enable nginx
 # Copy files to appropriate locations
 sudo cp apollo-api /etc/nginx/sites-available/apollo-api
 ln -s /etc/nginx/sites-available/apollo-api /etc/nginx/sites-enabled/apollo-api
+
+# Install PM2
+npm install pm2 -g
+
+pm2 start server.js
+pm2 startup
