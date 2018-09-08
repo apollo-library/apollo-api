@@ -28,7 +28,8 @@ sudo apt-get install -y mongodb-org
 # Set up mongo config
 echo -e '\n#Configure Replica Set\nreplication:\n\treplSetName: "rs0"' | sudo tee --append /etc/mongod.conf > /dev/null
 sudo service mongod start
-echo "rs.initiate()" | mongo
+mongo apollodb --eval 'rs.initiate()'
+mongo apollodb --eval 'db.books.createIndex({title: "text", author: "text"})'
 
 # Run MongoDB on startup
 sudo systemctl enable mongod.service
