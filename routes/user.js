@@ -8,10 +8,4 @@ userRoutes.route('/:userID')
 userRoutes.route('/:userID/history')
 	.get(userController.getHistory)
 
-userRoutes.route('/:userID/history/loans')
-	.get(userController.getHistoryLoans)
-
-userRoutes.route('/:userID/history/fines')
-	.get(userController.getHistoryFines)
-
 module.exports = userRoutes;

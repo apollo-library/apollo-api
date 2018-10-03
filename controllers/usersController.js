@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO: Create users schema first
+
 // Mongo Setup
 const	mongo		= require('../mongo'),
 		db			= mongo.db(),
@@ -25,6 +27,22 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	if (!req.body.forename) {
+		res.json({
+			code: "003",
+			message: "No forename specified"
+		});
+		return;
+	}
+
+	if (!req.body.surname) {
+		res.json({
+			code: "003",
+			message: "No surname specified"
+		});
+		return;
+	}
+
 	const user = await db.collection('users').findOne({_id: req.body.id});
 	if (user) {
 		utils.logError("User '" + req.body.id + "' already exists");
@@ -36,7 +54,11 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 	}
 
 	try {
-		await db.collection('users').insertOne({_id: req.body.id});
+		await db.collection('users').insertOne({
+			_id: req.body.id,
+			forname: req.body.forename,
+			surname: req.body.surname
+		});
 	} catch (err) {
 		utils.logError(err.message);
 		res.json({

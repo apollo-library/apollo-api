@@ -57,13 +57,10 @@ exports.deleteUser = utils.asyncHandler(async (req, res) => {
 });
 
 exports.getHistory = utils.asyncHandler(async (req, res) => {
-	res.json({function: "getHistory", userID: req.params.userID});
-});
-
-exports.getHistoryLoans = utils.asyncHandler(async (req, res) => {
-	res.json({function: "getHistoryLoans", userID: req.params.userID});
-});
-
-exports.getHistoryFines = utils.asyncHandler(async (req, res) => {
-	res.json({function: "getHistoryFines", userID: req.params.userID});
+	res.json({
+		code: "000",
+		message: "Success",
+		data: (await db.collection('history').find().toArray())
+			.filter(item => item.user == req.params.userID)
+	});
 });

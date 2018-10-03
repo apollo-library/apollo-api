@@ -192,20 +192,25 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 		session.startTransaction();
 
 		try {
-			const loanID = (await db.collection('loans').insertOne({
-				userID: user._id,
-				bookID: book._id,
-				withdrawDate: new Date(),
-				dueDate: new Date(req.body.due)
+			const withdrawID = (await db.collection('history').insertOne({
+				date: new Date(),
+				action: "withdraw",
+				user: user._id,
+				book: book._id
 			}, {session})).ops[0]._id;
 
-			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
+			const loanID = (await db.collection('loans').insertOne({
+				dueDate: new Date(req.body.due),
+				withdrawID: withdrawID
+			}, {session})).ops[0]._id;
+
+			await db.collection('users').updateOne({_id: user._id}, {$push: {
 				loanIDs: loanID
 			}, $pull: {
 				reservationIDs: book.reservationID
 			}}, {session});
 
-			await db.collection('books').updateOne({_id: req.params.bookID}, {$set: {
+			await db.collection('books').updateOne({_id: book._id}, {$set: {
 				loanID: loanID
 			}, $unset : {
 				reservationID: null
@@ -265,17 +270,26 @@ exports.depositBook = utils.asyncHandler(async (req, res) => {
 		session.startTransaction();
 
 		try {
+			const withdrawal = await db.collection('history').findOne({_id: loan.withdrawID}, {session});
+
 			await db.collection('loans').updateOne({_id: loan._id}, {$set: {
 				returnDate: new Date()
 			}}, {session});
 
-			await db.collection('users').updateOne({_id: loan.userID}, {$pull: {
+			await db.collection('users').updateOne({_id: withdrawal.user}, {$pull: {
 				loanIDs: loan._id
 			}}, {session});
 
-			await db.collection('books').updateOne({_id: loan.bookID}, {$unset: {
+			await db.collection('books').updateOne({_id: withdrawal.book}, {$unset: {
 				loanID: null
 			}}, {session});
+
+			await db.collection('history').insertOne({
+				date: new Date(),
+				action: "deposit",
+				user: withdrawal.user,
+				book: withdrawal.book
+			}, {session});
 		} catch (err) {
 			utils.logError(err.message);
 			session.abortTransaction();
@@ -352,13 +366,20 @@ exports.reserveBook = utils.asyncHandler(async (req, res) => {
 				bookID: book._id
 			}, {session})).ops[0]._id;
 
-			await db.collection('users').updateOne({_id: req.body.userID}, {$push: {
+			await db.collection('users').updateOne({_id: user._id}, {$push: {
 				reservationIDs: reservationID
 			}}, {session});
 
-			await db.collection('books').updateOne({_id: req.params.bookID}, {$set: {
+			await db.collection('books').updateOne({_id: book._id}, {$set: {
 				reservationID: reservationID
 			}}, {session});
+
+			await db.collection('history').insertOne({
+				date: new Date(),
+				action: "reserve",
+				user: user._id,
+				book: book._id
+			}, {session});
 		} catch (err) {
 			utils.logError(err.message);
 			session.abortTransaction();
@@ -476,6 +497,13 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 			await db.collection('books').updateOne({_id: book._id}, {$unset: {
 				reservationID: null
 			}}, {session});
+
+			await db.collection('history').insertOne({
+				date: new Date(),
+				action: "cancel reservation",
+				user: user._id,
+				book: book._id
+			}, {session});
 		} catch (err) {
 			utils.logError(err.message);
 			session.abortTransaction();
@@ -531,24 +559,42 @@ exports.renewBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	try {
-		await db.collection('loans').updateOne({_id: book.loanID}, {$set: {
-			dueDate: new Date(req.body.due)
-		}});
-	} catch (err) {
-		utils.logError(err);
-		res.json({
-			code: "001",
-			message: "Couldn't renew book"
-		});
-		return;
-	}
+	client.withSession(async session => {
+		session.startTransaction();
 
-	utils.logSuccess("Book '" + req.params.bookID + "' successfully renewed");
-	res.json({
-		code: "000",
-		message: "Success"
+		try {
+			const withdrawID = (await db.collection('loans').findOneAndUpdate({_id: book.loanID}, {$set: {
+				dueDate: new Date(req.body.due)
+			}})).value.withdrawID;
+
+			// Query history to get user and book IDs (not the most efficient method but it will do)
+			const withdrawal = await db.collection('history').findOne({_id: withdrawID});
+
+			await db.collection('history').insertOne({
+				date: new Date(),
+				action: "renew",
+				user: withdrawal.user,
+				book: withdrawal.book
+			}, {session});
+		} catch (err) {
+			utils.logError(err.message);
+			session.abortTransaction();
+			res.json({
+				code: "001",
+				message: "Couldn't renew book"
+			});
+			return;
+		}
+
+		await session.commitTransaction();
+	}).then(() => {
+		utils.logSuccess("Book '" + req.params.bookID + "' successfully renewed");
+		res.json({
+			code: "000",
+			message: "Success"
+		});
 	});
+
 });
 
 // Loans information
@@ -585,9 +631,21 @@ exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
 // History
 
 exports.getBookHistory = utils.asyncHandler(async (req, res) => {
-	res.json({function: "getBookHistory", bookID: req.params.bookID});
+	res.json({
+		code: "000",
+		message: "Success",
+		data: (await db.collection('history').find().toArray())
+			.filter(item => item.book == req.params.bookID)
+	});
 });
 
 exports.getBookHistoryUsers = utils.asyncHandler(async (req, res) => {
-	res.json({function: "getBookHistoryUsers", bookID: req.params.bookID});
+	res.json({
+		code: "000",
+		message: "Success",
+		data: (await db.collection('history').find().toArray())
+			.filter(item => item.book == req.params.bookID)
+			.foreach(item => item.user)
+			.filter((item, pos, items) => items.indexOf(item) == pos)
+	});
 });

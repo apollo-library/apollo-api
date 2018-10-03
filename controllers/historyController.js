@@ -9,5 +9,9 @@ const	mongo		= require('../mongo'),
 		utils		= require('../utils');
 
 exports.getHistory = utils.asyncHandler(async (req, res) => {
-	res.json({function: "getHistory"});
+	res.json({
+		code: "000",
+		message: "Success",
+		data: await db.collection('history').find().toArray()
+	});
 });
