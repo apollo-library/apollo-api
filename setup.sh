@@ -25,10 +25,16 @@ fi
 sudo apt-get update
 sudo apt-get install -y mongodb-org
 
-# Set up mongo config
+# Set up Mongo config
 echo -e '\n#Configure Replica Set\nreplication:\n\treplSetName: "rs0"' | sudo tee --append /etc/mongod.conf > /dev/null
 sudo service mongod start
 mongo apollodb --eval 'rs.initiate()'
+mongo apollodb --eval 'db.createCollection("books")'
+mongo apollodb --eval 'db.createCollection("history")'
+mongo apollodb --eval 'db.createCollection("loans")'
+mongo apollodb --eval 'db.createCollection("reservations")'
+mongo apollodb --eval 'db.createCollection("tags")'
+mongo apollodb --eval 'db.createCollection("users")'
 mongo apollodb --eval 'db.books.createIndex({title: "text", author: "text"})'
 
 # Run MongoDB on startup
