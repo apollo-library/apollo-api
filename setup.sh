@@ -56,6 +56,7 @@ sudo npm install pm2 -g
 
 # Install project
 npm install
+echo -e "\nexport NODE_ENV=production" >> ~/.bashrc
 
 # Start Server
 pm2 start server.js
