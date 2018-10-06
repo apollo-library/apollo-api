@@ -11,8 +11,11 @@ const	mongo		= require('../mongo'),
 exports.getLoans = utils.asyncHandler(async (req, res) => {
 	const loans = await db.collection('loans').find().toArray();
 
+	var now = new Date();
+	now.setHours(0,0,0,0);
+
 	let error = false;
-	const allData = loans.map(async loan => {
+	const allData = loans.filter(loan => !loan.returnDate).map(async loan => {
 		const withdraw = await db.collection('history').findOne({_id: loan.withdrawID});
 		if (!withdraw) {
 			utils.logError("Withdrawal '" + loan.withdrawID + "' not found");
@@ -60,10 +63,9 @@ exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
 
 	var now = new Date();
 	now.setHours(0,0,0,0);
-	const overdue = loans.filter(loan => !loan.returnDate && loan.dueDate < now);
 
 	let error = false;
-	const allData = overdue.map(async loan => {
+	const allData = loans.filter(loan => !loan.returnDate && loan.dueDate < now).map(async loan => {
 		const withdraw = await db.collection('history').findOne({_id: loan.withdrawID});
 		if (!withdraw) {
 			utils.logError("Withdrawal '" + loan.withdrawID + "' not found");
