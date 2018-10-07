@@ -27,6 +27,41 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+exports.updateUser = utils.asyncHandler(async (req, res) => {
+	const user = await db.collection('users').findOne({_id: req.params.userID});
+	if (!user) {
+		utils.logError("User '" + req.params.userID + "' not found");
+		res.json({
+			code: "004",
+			message: "User not found"
+		});
+		return;
+	}
+
+	try {
+		await db.collection('users').findOneAndUpdate({_id: req.params.userID}, {$set: {
+			forename:	req.body.forename	|| user.forename,
+			surname:	req.body.surname	|| user.surname,
+			year:		req.body.year		|| user.year,
+			reg:		req.body.reg		|| user.reg,
+			email:		req.body.email		|| user.email
+		}});
+	} catch (err) {
+		utils.logError(err.message);
+		res.json({
+			code: "001",
+			message: "Couldn't update user"
+		});
+		return;
+	}
+
+	utils.logSuccess("User '" + req.params.userID + "' successfully uddates");
+	res.json({
+		code: "000",
+		message: "Success"
+	});
+});
+
 exports.deleteUser = utils.asyncHandler(async (req, res) => {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
