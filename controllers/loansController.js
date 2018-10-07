@@ -8,14 +8,10 @@ const	mongo		= require('../mongo'),
 // Extras
 		utils		= require('../utils');
 
-exports.getLoans = utils.asyncHandler(async (req, res) => {
-	const loans = await db.collection('loans').find().toArray();
-
-	var now = new Date();
-	now.setHours(0,0,0,0);
-
+async function getLoanData(loans) {
 	let error = false;
-	const allData = loans.filter(loan => !loan.returnDate).map(async loan => {
+
+	const loanData = await Promise.all(loans.map(async loan => {
 		const withdraw = await db.collection('history').findOne({_id: loan.withdrawID});
 		if (!withdraw) {
 			utils.logError("Withdrawal '" + loan.withdrawID + "' not found");
@@ -35,12 +31,24 @@ exports.getLoans = utils.asyncHandler(async (req, res) => {
 		}
 
 		return {
+			loan: loan,
 			book: book,
 			user: user
 		}
-	});
+	}));
 
-	if (error) {
+	return (error) ? undefined : loanData
+}
+
+exports.getLoans = utils.asyncHandler(async (req, res) => {
+	const loans = await db.collection('loans').find().toArray();
+
+	var now = new Date();
+	now.setHours(0,0,0,0);
+
+	const allData = await getLoanData(loans.filter(loan => !loan.returnDate));
+
+	if (!allData) {
 		res.json({
 			code: "001",
 			message: "Couldn't get loans"
@@ -48,14 +56,12 @@ exports.getLoans = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	Promise.all(allData).then(data => {
-		res.json({
+	res.json({
 			code: "000",
 			message: "Success",
-			count: data.length,
-			data: data
+			count: allData.length,
+			data: allData
 		});
-	});
 });
 
 exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
@@ -65,32 +71,9 @@ exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
 	now.setHours(0,0,0,0);
 
 	let error = false;
-	const allData = loans.filter(loan => !loan.returnDate && loan.dueDate < now).map(async loan => {
-		const withdraw = await db.collection('history').findOne({_id: loan.withdrawID});
-		if (!withdraw) {
-			utils.logError("Withdrawal '" + loan.withdrawID + "' not found");
-			error = true;
-		}
+	const allData = await getLoanData(loans.filter(loan => !loan.returnDate && loan.dueDate < now));
 
-		const book = await db.collection('books').findOne({_id: withdraw.book});
-		if (!book) {
-			utils.logError("Book '" + withdraw.book + "' not found");
-			error = true;
-		}
-
-		const user = await db.collection('users').findOne({_id: withdraw.user});
-		if (!user) {
-			utils.logError("User '" + withdraw.user + "' not found");
-			error = true;
-		}
-
-		return {
-			book: book,
-			user: user
-		}
-	});
-
-	if (error) {
+	if (!allData) {
 		res.json({
 			code: "001",
 			message: "Couldn't get loans"
@@ -98,12 +81,10 @@ exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	Promise.all(allData).then(data => {
-		res.json({
+	res.json({
 			code: "000",
 			message: "Success",
-			count: data.length,
-			data: data
+			count: allData.length,
+			data: allData
 		});
-	});
 });
