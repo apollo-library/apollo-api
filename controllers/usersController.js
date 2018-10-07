@@ -43,6 +43,30 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	if (!req.body.year) {
+		res.json({
+			code: "003",
+			message: "No year specified"
+		});
+		return;
+	}
+
+	if (!req.body.reg) {
+		res.json({
+			code: "003",
+			message: "No reg specified"
+		});
+		return;
+	}
+
+	if (!req.body.email) {
+		res.json({
+			code: "003",
+			message: "No email specified"
+		});
+		return;
+	}
+
 	const user = await db.collection('users').findOne({_id: req.body.id});
 	if (user) {
 		utils.logError("User '" + req.body.id + "' already exists");
@@ -56,8 +80,11 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 	try {
 		await db.collection('users').insertOne({
 			_id: req.body.id,
-			forname: req.body.forename,
-			surname: req.body.surname
+			forename: req.body.forename,
+			surname: req.body.surname,
+			year: req.body.year,
+			reg: req.body.reg,
+			email: req.body.email
 		});
 	} catch (err) {
 		utils.logError(err.message);
