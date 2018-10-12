@@ -1,7 +1,5 @@
 'use strict';
 
-// TODO: Create users schema first
-
 // Mongo Setup
 const	mongo		= require('../mongo'),
 		db			= mongo.db(),
