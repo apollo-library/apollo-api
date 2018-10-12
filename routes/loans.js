@@ -7,4 +7,7 @@ loansRoutes.route('/')
 loansRoutes.route('/overdue')
 	.get(loansController.getOverdueLoans)
 
+loansRoutes.route('/due')
+	.get(loansController.getDueLoans)
+
 module.exports = loansRoutes;
