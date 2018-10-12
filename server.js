@@ -4,6 +4,7 @@
 const	express		= require('express'),
 		app			= express(),
 		config		= require('./config'),
+		info		= require('./package'),
 
 		mongo		= require('./mongo'),
 		bodyParser	= require('body-parser'),
@@ -72,7 +73,7 @@ mongo.connect((err) => {
 	    	res.set('Content-Type', 'text/json');
 	    	res.send.call(res, strData);
 	    };
-		
+
 		next();
 	})
 
@@ -81,9 +82,9 @@ mongo.connect((err) => {
 
 	app.route('/').get((req, res) => {
 		res.send({
-			name: config.name,
-			version: config.version,
-			created_by: config.authors
+			name: info.name,
+			version: info.version,
+			created_by: info.contributors.map(person => person.name)
 		});
 	});
 
