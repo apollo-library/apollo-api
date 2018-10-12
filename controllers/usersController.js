@@ -67,6 +67,34 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	const yearInt = parseInt(req.body.year);
+
+	if (isNaN(yearInt) || yearInt != 0 && (yearInt < 7 || yearInt > 13)) {
+		res.json({
+			code: "003",
+			message: "Invalid year"
+		});
+		return;
+	}
+
+	if (!(() => {
+		if (yearInt == 0) {
+			return req.body.reg == "STAFF";
+		} else if (yearInt > 11) {
+			const regInt = parseInt(req.body.reg);
+			if (isNaN(regInt)) return false;
+			return (0 < regInt && regInt < 11);
+		} else {
+			return ["F", "H", "N", "P", "R", "T"].indexOf(req.body.reg) > -1;
+		}
+	})()) {
+		res.json({
+			code: "003",
+			message: "Invalid reg"
+		});
+		return;
+	}
+
 	const user = await db.collection('users').findOne({_id: req.body.id});
 	if (user) {
 		utils.logError("User '" + req.body.id + "' already exists");
