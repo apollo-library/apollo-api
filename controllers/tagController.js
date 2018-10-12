@@ -30,7 +30,7 @@ exports.getTag = utils.asyncHandler(async (req, res) => {
 	utils.logSuccess("Tag ID '" + req.params.tagID + "' found");
 	res.json({
 		code: "000",
-		message: "Tag found",
+		message: "Success",
 		data: tag
 	});
 })
