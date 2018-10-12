@@ -25,10 +25,32 @@ exports.getLoan = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	const withdraw = await db.collection('history').findOne({_id: loan.withdrawID});
+	if (!withdraw) {
+		utils.logError("Withdrawal '" + loan.withdrawID + "' not found");
+		error = true;
+	}
+
+	const book = await db.collection('books').findOne({_id: withdraw.book});
+	if (!book) {
+		utils.logError("Book '" + withdraw.book + "' not found");
+		error = true;
+	}
+
+	const user = await db.collection('users').findOne({_id: withdraw.user});
+	if (!user) {
+		utils.logError("User '" + withdraw.user + "' not found");
+		error = true;
+	}
+
 	utils.logSuccess("Loan '" + req.params.loanID + "' found");
 	res.json({
 		code: "000",
-		message: "Loan found",
-		data: loan
+		message: "Success",
+		data: {
+			loan: loan,
+			book: book,
+			user: user
+		}
 	});
 });

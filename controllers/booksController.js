@@ -24,7 +24,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 		});
 		return;
 	}
-	
+
 	const book = await db.collection('books').findOne({_id: req.body.id});
 	if (book) {
 		utils.logError("Book '" + req.body.id + "' already exists");
@@ -104,7 +104,7 @@ exports.searchBooks = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	const results = req.body.query ? 
+	const results = req.body.query ?
 		await db.collection('books').find({$or: [
 			{_id: req.body.query},
 			{$text: {$search: req.body.query}},

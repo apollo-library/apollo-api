@@ -54,7 +54,7 @@ exports.getBook = utils.asyncHandler(async (req, res) => {
 	utils.logSuccess("Book '" + req.params.bookID + "' found");
 	res.json({
 		code: "000",
-		message: "Book found",
+		message: "Success",
 		data: book
 	});
 });
