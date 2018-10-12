@@ -88,3 +88,29 @@ exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
 			data: allData
 		});
 });
+
+exports.getDueLoans = utils.asyncHandler(async (req, res) => {
+	const loans = await db.collection('loans').find().toArray();
+
+	var date = new Date();
+	date.setHours(0,0,0,0);
+	date.setDate(date.getDate() + 3);
+
+	let error = false;
+	const allData = await getLoanData(loans.filter(loan => !loan.returnDate && loan.dueDate < date));
+
+	if (!allData) {
+		res.json({
+			code: "001",
+			message: "Couldn't get loans"
+		});
+		return;
+	}
+
+	res.json({
+			code: "000",
+			message: "Success",
+			count: allData.length,
+			data: allData
+		});
+});
