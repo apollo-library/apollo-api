@@ -631,11 +631,43 @@ exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
 // History
 
 exports.getBookHistory = utils.asyncHandler(async (req, res) => {
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		utils.logError("Book '" + req.params.bookID + "' not found");
+		res.json({
+			code: "002",
+			message: "Book not found"
+		});
+		return;
+	}
+
+	const history = (await db.collection('history').find().toArray())
+		.filter(item => item.book == req.params.bookID);
+
+	let error = false;
+	const allData = await Promise.all(history.map(async item => {
+		const user = await db.collection('users').findOne({_id: item.user});
+
+		if (!user) {
+			error = true;
+		} else {
+			item.user = user;
+			return item;
+		}
+	}));
+
+	if (error) {
+		res.json({
+			code: "001",
+			message: "Couldn't get history"
+		});
+		return;
+	}
+
 	res.json({
 		code: "000",
 		message: "Success",
-		data: (await db.collection('history').find().toArray())
-			.filter(item => item.book == req.params.bookID)
+		data: allData
 	});
 });
 
