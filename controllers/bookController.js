@@ -72,9 +72,12 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 
 	try {
 		await db.collection('books').updateOne({_id: book._id}, {$set: {
-			title: req.body.title || book.title,
-			author: req.body.author || book.author,
-			tags: req.body.tags || book.tags
+			ISBN10:		req.body.ISBN10		|| book.ISBN10,
+			ISBN13:		req.body.ISBN13		|| book.ISBN13,
+			title:		req.body.title		|| book.title,
+			author:		req.body.author		|| book.author,
+			publisher:	req.body.publisher	|| book.publisher,
+			tags:		req.body.tags		|| book.tags
 		}});
 	} catch (err) {
 		utils.logError(err);
