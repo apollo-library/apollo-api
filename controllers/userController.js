@@ -19,6 +19,21 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	if (user.loanIDs && user.loanIDs.length) {
+		const loans = await utils.getLoansForIDs(user.loanIDs, db);
+
+		if (!loans) {
+			res.json({
+				code: "001",
+				message: "Couldn't get loans"
+			});
+			return;
+		}
+
+		user.loans = loans;
+		delete user.loanIDs;
+	}
+
 	utils.logSuccess("User '" + req.params.userID + "' found");
 	res.json({
 		code: "000",

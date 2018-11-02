@@ -11,9 +11,6 @@ const	mongo		= require('../mongo'),
 
 exports.getLoan = utils.asyncHandler(async (req, res) => {
 	const loans = await db.collection('loans').find().toArray();
-	loans.forEach(loan => {
-		console.log(loan._id);
-	});
 
 	const loan = await db.collection('loans').findOne({_id: new ObjectId(req.params.loanID)});
 	if (!loan) {
