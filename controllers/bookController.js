@@ -1,13 +1,13 @@
 'use strict';
 
 // Mongo Setup
-const	mongo		= require('../mongo'),
-		db			= mongo.db(),
-		client		= mongo.client(),
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
+		client	= mongo.client(),
 
 // Extras
-		config		= require('../config'),
-		utils		= require('../utils');
+		config	= require('../config'),
+		utils	= require('../utils');
 
 function validDate(dateString) {
 	console.log("Checking date '" + dateString + "'");
