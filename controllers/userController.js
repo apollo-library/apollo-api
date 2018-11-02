@@ -110,7 +110,15 @@ exports.deleteUser = utils.asyncHandler(async (req, res) => {
 	}
 
 	try {
-		await db.collection('users').remove({_id: user._id});
+		await db.collection('users').findOneAndUpdate({_id: user._id}, {
+			$unset: {
+				forename:	null,
+				surname:	null,
+				year:		null,
+				reg:		null,
+				email:		null
+			}
+		});
 	} catch (err) {
 		utils.logError(err);
 		res.json({
