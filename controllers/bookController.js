@@ -107,7 +107,7 @@ exports.deleteBook = utils.asyncHandler(async (req, res) => {
 	}
 
 	try {
-		await db.collection('books').remove({_id: book._id});
+		await db.collection('books').deleteOne({_id: book._id});
 	} catch (err) {
 		utils.logError(err);
 		res.json({
@@ -219,7 +219,7 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 				reservationID: null
 			}}, {session});
 
-			await db.collection('reservations').remove({_id: book.reservationID})
+			await db.collection('reservations').deleteOne({_id: book.reservationID})
 		} catch (err) {
 			utils.logError(err.message);
 			session.abortTransaction();
@@ -491,7 +491,7 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 		session.startTransaction();
 
 		try {
-			await db.collection('reservations').remove({_id: reservation._id}, {session});
+			await db.collection('reservations').deleteOne({_id: reservation._id}, {session});
 
 			await db.collection('users').updateOne({_id: user._id}, {$pull: {
 				reservationIDs: reservation._id
