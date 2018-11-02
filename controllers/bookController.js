@@ -633,7 +633,7 @@ exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
 
 // History
 
-exports.getBookHistory = utils.asyncHandler(async (req, res) => {
+exports.getHistory = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -674,7 +674,17 @@ exports.getBookHistory = utils.asyncHandler(async (req, res) => {
 	});
 });
 
-exports.getBookHistoryUsers = utils.asyncHandler(async (req, res) => {
+exports.getUserHistory = utils.asyncHandler(async (req, res) => {
+	const book = await db.collection('books').findOne({_id: req.params.bookID});
+	if (!book) {
+		utils.logError("Book '" + req.params.bookID + "' not found");
+		res.json({
+			code: "002",
+			message: "Book not found"
+		});
+		return;
+	}
+
 	res.json({
 		code: "000",
 		message: "Success",

@@ -150,10 +150,39 @@ exports.deleteUser = utils.asyncHandler(async (req, res) => {
 });
 
 exports.getHistory = utils.asyncHandler(async (req, res) => {
+	const user = await db.collection('users').findOne({_id: req.params.userID});
+	if (!user) {
+		utils.logError("User '" + req.params.userID + "' not found");
+		res.json({
+			code: "003",
+			message: "User not found"
+		});
+		return;
+	}
+
 	res.json({
 		code: "000",
 		message: "Success",
 		data: (await db.collection('history').find().toArray())
 			.filter(item => item.user == req.params.userID)
+	});
+});
+
+exports.getLoanHistory = utils.asyncHandler(async (req, res) => {
+	const user = await db.collection('users').findOne({_id: req.params.userID});
+	if (!user) {
+		utils.logError("User '" + req.params.userID + "' not found");
+		res.json({
+			code: "003",
+			message: "User not found"
+		});
+		return;
+	}
+
+	res.json({
+		code: "000",
+		message: "Success",
+		data: (await utils.getLoanData((await db.collection('loans').find().toArray()), db))
+			.filter(loan => loan.user._id == req.params.userID)
 	});
 });
