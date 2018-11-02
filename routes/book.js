@@ -29,9 +29,9 @@ bookRoutes.route('/:bookID/loan')
 	.get(bookController.getCurrentLoan)
 
 bookRoutes.route('/:bookID/history')
-	.get(bookController.getBookHistory)
+	.get(bookController.getHistory)
 
 bookRoutes.route('/:bookID/history/users')
-	.get(bookController.getBookHistoryUsers)
+	.get(bookController.getUserHistory)
 
 module.exports = bookRoutes;
