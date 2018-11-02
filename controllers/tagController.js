@@ -1,12 +1,11 @@
 'use strict';
 
 // Mongo Setup
-const	mongo		= require('../mongo'),
-		db			= mongo.db(),
-		client		= mongo.client(),
+const	mongo	= require('../mongo'),
+		db		= mongo.db(),
 
 // Extras
-		utils		= require('../utils');
+		utils	= require('../utils');
 
 exports.getTag = utils.asyncHandler(async (req, res) => {
 	if (isNaN(req.params.tagID)) {
