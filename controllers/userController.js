@@ -30,8 +30,10 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 		}
 
 		user.loans = loans;
-		delete user.loanIDs;
+	} else {
+		user.loans = [];
 	}
+	delete user.loanIDs;
 
 	utils.logSuccess("User '" + req.params.userID + "' found");
 	res.json({
@@ -183,6 +185,9 @@ exports.getLoanHistory = utils.asyncHandler(async (req, res) => {
 		code: "000",
 		message: "Success",
 		data: (await utils.getLoanData((await db.collection('loans').find().toArray()), db))
-			.filter(loan => loan.user._id == req.params.userID)
+			.filter(loan => loan.user._id == req.params.userID).map(loan => {
+				delete loan.user;
+				return loan;
+			})
 	});
 });
