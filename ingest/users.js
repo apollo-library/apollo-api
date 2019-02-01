@@ -86,14 +86,14 @@ function connectAPI(url, body) {
 
 async function addUser(row) {
 	if (!row[0]) return;
-	const user = JSON.parse(
-		(await connectAPI('/user/' + escape(row[0])))
-		.substring(9)
-	);
-	if (user.data) {
-		utils.logError("User '" + row[0] + "' already exists");
-		return;
-	}
+	// const user = JSON.parse(
+	// 	(await connectAPI('/user/' + escape(row[0])))
+	// 	.substring(9)
+	// );
+	// if (user.data) {
+	// 	utils.logError("User '" + row[0] + "' already exists");
+	// 	return;
+	// }
 
 	let result = JSON.parse((await connectAPI('/users', {
 		id: row[0],
@@ -104,8 +104,19 @@ async function addUser(row) {
 		email: row[5],
 	})).substring(9));
 
-	console.log(result);
-	result.code == "000" ? utils.logSuccess("Added user '" + row[0] + "'") : utils.logError("Failed to add user '" + row[0] + "'");
+	if (result.code == "004") {
+		let newResult = JSON.parse((await connectAPI('/user/' + row[0], {
+			forename: row[1],
+			surname: row[2],
+			year: row[3],
+			reg: row[4],
+			email: row[5],
+		})).substring(9));
+
+		newResult.code == "000" ? utils.logSuccess("Updated user '" + row[0] + "'") : utils.logError("Failed to update user '" + row[0] + "', error " + newResult.code + ": '" + newResult.message + "'");
+	} else {
+		result.code == "000" ? utils.logSuccess("Added user '" + row[0] + "'") : utils.logError("Failed to add user '" + row[0] + "', error " + result.code + ": '" + result.message + "'");
+	}
 }
 
 /* === BEGIN MAIN CODE === */

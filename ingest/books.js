@@ -143,7 +143,6 @@ async function addBook(row) {
 		tags:		combinedData.categories || []
 	})).substring(9));
 
-	console.log(result);
 	result.code == "000" ? utils.logSuccess("Added book '" + row[0] + "'") : utils.logError("Failed to add book '" + row[0] + "'");
 }
 
