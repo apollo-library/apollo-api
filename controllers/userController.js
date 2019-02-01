@@ -94,6 +94,8 @@ exports.updateUser = utils.asyncHandler(async (req, res) => {
 		await db.collection('users').findOneAndUpdate({_id: req.params.userID}, {$set: {
 			forename:	req.body.forename	|| user.forename,
 			surname:	req.body.surname	|| user.surname,
+			name_concat: (req.body.forename || user.forename)
+				+ ' ' + (req.body.surname	|| user.surname),
 			year:		req.body.year		|| user.year,
 			reg:		req.body.reg		|| user.reg,
 			email:		req.body.email		|| user.email
@@ -128,11 +130,12 @@ exports.deleteUser = utils.asyncHandler(async (req, res) => {
 	try {
 		await db.collection('users').findOneAndUpdate({_id: user._id}, {
 			$unset: {
-				forename:	null,
-				surname:	null,
-				year:		null,
-				reg:		null,
-				email:		null
+				forename:		null,
+				surname:		null,
+				name_concat:	null,
+				year:			null,
+				reg:			null,
+				email:			null
 			}
 		});
 	} catch (err) {
