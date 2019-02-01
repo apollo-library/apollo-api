@@ -4,7 +4,6 @@ const	fs			= require('fs'),
 		http		= require('http'),
 
 		{google}	= require('googleapis'),
-		isbn		= require('node-isbn'),
 
 		config		= require('../config'),
 		utils		= require('../utils'),
@@ -12,7 +11,11 @@ const	fs			= require('fs'),
 		SCOPES		= ['https://www.googleapis.com/auth/spreadsheets.readonly'],
 		TOKEN_PATH	= 'credentials.json';
 
-const spreadsheet = '';
+if (process.argv.length < 3) {
+	console.log('Please specify a spreadsheet id');
+	return;
+}
+const spreadsheet = process.argv[2];
 
 /* === BEGIN GOOGLE AUTH FUNCTIONS === */
 
@@ -81,70 +84,28 @@ function connectAPI(url, body) {
 	});
 }
 
-async function getBookData(ISBN) {
-	return new Promise(resolve => {
-		isbn.resolve(ISBN, async (err, book) => {
-			if (err) resolve({categories: []});
-			else resolve(book);
-		})
-	})
-}
-
-async function addBook(row) {
+async function addUser(row) {
 	if (!row[0]) return;
-	const book = JSON.parse(
-		(await connectAPI('/book/' + escape(row[0])))
+	const user = JSON.parse(
+		(await connectAPI('/user/' + escape(row[0])))
 		.substring(9)
 	);
-	if (book.data) {
-		utils.logError("Book '" + row[0] + "' already exists");
+	if (user.data) {
+		utils.logError("User '" + row[0] + "' already exists");
 		return;
 	}
 
-	const	isbn10Data		= row[1] ? await getBookData(row[1]) : {categories: []},
-			isbn13Data		= row[2] ? await getBookData(row[2]) : {categories: []},
-			combinedData	= {...isbn10Data, ...isbn13Data};
-
-	if (combinedData.industryIdentifiers && combinedData.industryIdentifiers.length) {
-		const	isbn10Filtered = combinedData.industryIdentifiers.filter(item => item.type.includes("10")),
-				isbn13Filtered = combinedData.industryIdentifiers.filter(item => item.type.includes("13"));
-
-		if (isbn10Filtered.length) combinedData.isbn10 = isbn10Filtered[0].identifier;
-		if (isbn13Filtered.length) combinedData.isbn13 = isbn13Filtered[0].identifier;
-	}
-
-	if (!isbn10Data.categories) isbn10Data.categories = [];
-	if (!isbn13Data.categories) isbn13Data.categories = [];
-
-	if (isbn10Data.categories.length || isbn13Data.categories.length) {
-		combinedData.categories = isbn10Data.categories.concat(isbn13Data.categories.filter(tag => !isbn10Data.categories.includes(tag)));
-
-		// Separate items with commas
-		let newTags = [];
-
-		combinedData.categories.forEach(tag => {
-			const commaSplit = tag.split(', ');
-			commaSplit.forEach(splitTag => {
-				// Separate items with dashes
-				newTags = newTags.concat(splitTag.split(' - '));
-			});
-		});
-		combinedData.categories = newTags.map(tag => tag.trim());
-	}
-
-	let result = JSON.parse((await connectAPI('/books', {
-		id:			row[0].trim(),
-		isbn10:		(combinedData.isbn10 || row[1] || "ISBN10").trim(),
-		isbn13:		(combinedData.isbn13 || row[2] || "ISBN13").trim(),
-		title:		(combinedData.title	|| row[3] || "Unknown Title").trim(),
-		author:		(((combinedData.authors && combinedData.authors.length) ? combinedData.authors.join(', ') : null) ||
-					(row[4] ? row[4].replace(' (Author)', '').replace('by ', '') : "Unknown Author")).trim(),
-		publisher:	(combinedData.publisher || row[5] || "Unknown Publisher").trim(),
-		tags:		combinedData.categories || []
+	let result = JSON.parse((await connectAPI('/users', {
+		id: row[0],
+		forename: row[1],
+		surname: row[2],
+		year: row[3],
+		reg: row[4],
+		email: row[5],
 	})).substring(9));
 
 	console.log(result);
-	result.code == "000" ? utils.logSuccess("Added book '" + row[0] + "'") : utils.logError("Failed to add book '" + row[0] + "'");
+	result.code == "000" ? utils.logSuccess("Added user '" + row[0] + "'") : utils.logError("Failed to add user '" + row[0] + "'");
 }
 
 /* === BEGIN MAIN CODE === */
@@ -158,7 +119,7 @@ fs.readFile('client_secret.json', (err, content) => {
 		const sheets = google.sheets({version: 'v4', auth});
 		sheets.spreadsheets.values.get({
 			spreadsheetId: spreadsheet,
-			range: 'Current Stock!A2:F'
+			range: 'Users!A2:F'
 		}, (err, {data}) => {
 			if (err) return console.log('The Google Sheets API returned an error: ' + err);
 
@@ -167,7 +128,7 @@ fs.readFile('client_secret.json', (err, content) => {
 
 			(async () => {
 				for (let i = 0; i < rows.length; i++) {
-					await addBook(rows[i]);
+					await addUser(rows[i]);
 				}
 			})();
 		});
