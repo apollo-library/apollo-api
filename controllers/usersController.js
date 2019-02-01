@@ -107,6 +107,7 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 			_id: req.body.id,
 			forename: req.body.forename,
 			surname: req.body.surname,
+			name_concat: req.body.forename + ' ' + req.body.surname,
 			year: req.body.year,
 			reg: req.body.reg,
 			email: req.body.email
