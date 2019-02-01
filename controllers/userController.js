@@ -35,6 +35,8 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 	}
 	delete user.loanIDs;
 
+	user.fine = utils.calculateFine(user.loans);
+
 	utils.logSuccess("User '" + req.params.userID + "' found");
 	res.json({
 		code: "000",
@@ -109,7 +111,7 @@ exports.updateUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	utils.logSuccess("User '" + req.params.userID + "' successfully uddates");
+	utils.logSuccess("User '" + req.params.userID + "' successfully updated");
 	res.json({
 		code: "000",
 		message: "Success"
