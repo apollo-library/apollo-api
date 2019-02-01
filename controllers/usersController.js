@@ -11,7 +11,15 @@ exports.getUsers = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
-		data: await db.collection('users').find().toArray()
+		data: await Promise.all((await db.collection('users').find().toArray()).map(async user => {
+			let loans = [];
+			if (user.loanIDs && user.loanIDs.length) {
+				loans = await utils.getLoansForIDs(user.loanIDs, db);
+			}
+
+			user.fine = utils.calculateFine(loans || []);
+			return user;
+		}))
 	});
 });
 
