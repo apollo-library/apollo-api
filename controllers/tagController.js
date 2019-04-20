@@ -84,11 +84,11 @@ exports.editTag = utils.asyncHandler(async (req, res) => {
 });
 
 exports.deleteTag = utils.asyncHandler(async (req, res) => {
-	const tag = await db.collection('tags').findOne({_id: req.params.tagID});
+	const tag = await db.collection('tags').findOne({_id: Number(req.params.tagID)});
 	if (!tag) {
-		utils.logError("Tag '" + req.params.tagID + "' not found");
+		utils.logError("Tag ID '" + req.params.tagID + "' not found");
 		res.json({
-			code: "002",
+			code: "004",
 			message: "Tag not found"
 		});
 		return;
