@@ -82,3 +82,32 @@ exports.editTag = utils.asyncHandler(async (req, res) => {
 		message: "Success"
 	});
 });
+
+exports.deleteTag = utils.asyncHandler(async (req, res) => {
+	const tag = await db.collection('tags').findOne({_id: req.params.tagID});
+	if (!tag) {
+		utils.logError("Tag '" + req.params.tagID + "' not found");
+		res.json({
+			code: "002",
+			message: "Tag not found"
+		});
+		return;
+	}
+
+	try {
+		await db.collection('tags').deleteOne({_id: tag._id});
+	} catch (err) {
+		utils.logError(err);
+		res.json({
+			code: "001",
+			message: "Couldn't delete tag"
+		});
+		return;
+	}
+
+	utils.logSuccess("Tag '" + req.params.bookID + "' successfully deleted");
+	res.json({
+		code: "000",
+		message: "Success"
+	});
+});
