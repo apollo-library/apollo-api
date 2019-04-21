@@ -66,6 +66,7 @@ mongo.connect((err) => {
 		// CORS
 		res.header("Access-Control-Allow-Origin", "*");
 		res.header("Access-Control-Allow-Headers", "X-Requested-With");
+		res.header("Access-Control-Allow-Methods", "GET, POST, DELETE");
 
 		res.json = (data) => {
 	    	var strData = typeof data == 'object' ? JSON.stringify(data) : data;
