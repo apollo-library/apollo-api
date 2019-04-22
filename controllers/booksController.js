@@ -44,42 +44,18 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 	}
 
 	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
-	const tagNames = tags.map(i => i.name);
 	const tagIDs = tags.map(i => i._id);
-	const newTags = req.body.tags ? req.body.tags.filter(tag => !tagNames.includes(tag)) : [];
-	const existingTags = tags.filter(tag => req.body.tags.includes(tag.name));
-
-	const addedTags = [];
-
-	if (newTags.length) {
-		newTags.forEach(async tag => {
-			try {
-				let newID = tags.length ? tags[0]._id + addedTags.length + 1: 0;
-				await db.collection('tags').insertOne({
-					_id: newID,
-					name: tag
-				});
-				utils.logSuccess("Added tag '" + tag + "'");
-				addedTags.push({
-					_id: newID,
-					name: tag
-				});
-			} catch (err) {
-				utils.logError(err);
-			}
-		})
-	}
+	const filteredTags = tags.filter(tag => tagIDs.includes(tag));
 
 	try {
 		await db.collection('books').insertOne({
 			_id:		req.body.id,
-			ISBN10:		req.body.isbn10						|| "ISBN13",
-			ISBN13:		req.body.isbn13						|| "ISBN10",
-			title:		req.body.title						|| "Unknown Title",
-			author:		req.body.author						|| "Unknown Author",
-			publisher:	req.body.publisher					|| "Unknown Publisher",
-			tags:		existingTags.map(i => i._id)
-						.concat(addedTags.map(i => i._id))	|| []
+			ISBN10:		req.body.isbn10		|| "ISBN13",
+			ISBN13:		req.body.isbn13		|| "ISBN10",
+			title:		req.body.title		|| "Unknown Title",
+			author:		req.body.author		|| "Unknown Author",
+			publisher:	req.body.publisher	|| "Unknown Publisher",
+			tags:		filteredTags		|| []
 		});
 	} catch (err) {
 		utils.logError(err.message);
@@ -90,14 +66,11 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	var returnObj = {
+	utils.logSuccess("Book '" + req.body.id + "' successfully added");
+	res.json({
 		code: "000",
 		message: "Success"
-	}
-	if (addedTags.length) returnObj.tags = addedTags;
-
-	utils.logSuccess("Book '" + req.body.id + "' successfully added");
-	res.json(returnObj);
+	});
 });
 
 
