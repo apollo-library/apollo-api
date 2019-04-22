@@ -71,7 +71,9 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 	}
 
 	let emptyTags;
-	if (req.body.tags === ['']) emptyTags = [];
+	if (req.body.tags) if (req.body.tags[0] === "") emptyTags = [];
+
+	console.log(emptyTags,req.body.tags)
 
 	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
 	const tagIDs = tags.map(t => t._id.toString());
