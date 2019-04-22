@@ -1,11 +1,12 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	= require('../mongo'),
-		db		= mongo.db(),
+const	mongo		= require('../mongo'),
+		db			= mongo.db(),
+		ObjectId	= require('mongodb').ObjectId,
 
 // Extras
-		utils	= require('../utils');
+		utils		= require('../utils');
 
 exports.getTags = utils.asyncHandler(async (req, res) => {
 	res.json({
@@ -48,7 +49,6 @@ exports.addTag = utils.asyncHandler(async (req, res) => {
 
 	try {
 		await db.collection('tags').insertOne({
-			_id: sortedTags.length ? sortedTags[0]._id + 1: 0,
 			name: req.body.name,
 			colour: Number(req.body.colour) || 0
 		});

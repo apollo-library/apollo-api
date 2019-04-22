@@ -44,8 +44,17 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 	}
 
 	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
-	const tagIDs = tags.map(i => i._id);
-	const filteredTags = tags.filter(tag => tagIDs.includes(tag));
+	const tagIDs = tags.map(t => t._id.toString());
+	const newTags = req.body.tags.filter(tag => !tagIDs.includes(tag));
+
+	if (newTags.length) {
+		utils.logError("Tag " + (newTags.length > 1 ? "IDs" : "ID") + " '" + newTags.join("', '") + "' not found");
+		res.json({
+			code: "004",
+			message: "Tag not found"
+		});
+		return;
+	}
 
 	try {
 		await db.collection('books').insertOne({
@@ -55,7 +64,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 			title:		req.body.title		|| "Unknown Title",
 			author:		req.body.author		|| "Unknown Author",
 			publisher:	req.body.publisher	|| "Unknown Publisher",
-			tags:		filteredTags		|| []
+			tags: 		req.body.tags		|| []
 		});
 	} catch (err) {
 		utils.logError(err.message);
