@@ -85,7 +85,7 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 
 	let emptyTags;
 
-	if (req.body.tags !== ['']) emptyTags = [] 
+	if (req.body.tags === ['']) emptyTags = [] 
 
 	try {
 		await db.collection('books').updateOne({_id: book._id}, {$set: {
