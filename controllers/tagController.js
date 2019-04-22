@@ -1,22 +1,15 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	= require('../mongo'),
-		db		= mongo.db(),
+const	mongo		= require('../mongo'),
+		db			= mongo.db(),
+		ObjectId	= require('mongodb').ObjectId,
 
 // Extras
 		utils	= require('../utils');
 
 exports.getTag = utils.asyncHandler(async (req, res) => {
-	if (isNaN(req.params.tagID)) {
-		res.json({
-			code: "003",
-			message: "Invalid tag ID"
-		});
-		return;
-	}
-
-	const tag = await db.collection('tags').findOne({_id: Number(req.params.tagID)});
+	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)});
 	if (!tag) {
 		utils.logError("Tag ID '" + req.params.tagID + "' not found");
 		res.json({
@@ -35,15 +28,7 @@ exports.getTag = utils.asyncHandler(async (req, res) => {
 })
 
 exports.editTag = utils.asyncHandler(async (req, res) => {
-	if (isNaN(req.params.tagID)) {
-		res.json({
-			code: "003",
-			message: "Invalid tag ID"
-		});
-		return;
-	}
-
-	const tag = await db.collection('tags').findOne({_id: Number(req.params.tagID)});
+	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)});
 	if (!tag) {
 		utils.logError("Tag ID '" + req.params.tagID + "' not found");
 		res.json({
@@ -84,7 +69,7 @@ exports.editTag = utils.asyncHandler(async (req, res) => {
 });
 
 exports.deleteTag = utils.asyncHandler(async (req, res) => {
-	const tag = await db.collection('tags').findOne({_id: Number(req.params.tagID)});
+	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)});
 	if (!tag) {
 		utils.logError("Tag ID '" + req.params.tagID + "' not found");
 		res.json({
