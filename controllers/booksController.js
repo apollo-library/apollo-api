@@ -1,8 +1,8 @@
 'use strict';
 
 // Mongo Setup
-const	mongo	= require('../mongo'),
-		db		= mongo.db(),
+const	mongo		= require('../mongo'),
+		db			= mongo.db(),
 
 // Extras
 		utils	= require('../utils');
@@ -45,19 +45,25 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 
 	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
 	const tagNames = tags.map(i => i.name);
+	const tagIDs = tags.map(i => i._id);
 	const newTags = req.body.tags ? req.body.tags.filter(tag => !tagNames.includes(tag)) : [];
+	const existingTags = tags.filter(tag => req.body.tags.includes(tag.name));
 
 	const addedTags = [];
 
 	if (newTags.length) {
 		newTags.forEach(async tag => {
 			try {
+				let newID = tags.length ? tags[0]._id + addedTags.length + 1: 0;
 				await db.collection('tags').insertOne({
-					_id: tags.length ? tags[0]._id + 1: 0,
+					_id: newID,
 					name: tag
 				});
 				utils.logSuccess("Added tag '" + tag + "'");
-				addedTags.push(tag);
+				addedTags.push({
+					_id: newID,
+					name: tag
+				});
 			} catch (err) {
 				utils.logError(err);
 			}
@@ -67,12 +73,13 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 	try {
 		await db.collection('books').insertOne({
 			_id:		req.body.id,
-			ISBN10:		req.body.isbn10		|| "ISBN13",
-			ISBN13:		req.body.isbn13		|| "ISBN10",
-			title:		req.body.title		|| "Unknown Title",
-			author:		req.body.author		|| "Unknown Author",
-			publisher:	req.body.publisher	|| "Unknown Publisher",
-			tags:		req.body.tags		|| []
+			ISBN10:		req.body.isbn10						|| "ISBN13",
+			ISBN13:		req.body.isbn13						|| "ISBN10",
+			title:		req.body.title						|| "Unknown Title",
+			author:		req.body.author						|| "Unknown Author",
+			publisher:	req.body.publisher					|| "Unknown Publisher",
+			tags:		existingTags.map(i => i._id)
+						.concat(addedTags.map(i => i._id))	|| []
 		});
 	} catch (err) {
 		utils.logError(err.message);
