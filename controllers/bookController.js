@@ -74,7 +74,7 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 	const tagIDs = tags.map(t => t._id.toString());
 	const newTags = req.body.tags.filter(tag => !tagIDs.includes(tag));
 
-	if (newTags.length) {
+	if (newTags.length && req.body.tags !== ['']) {
 		utils.logError("Tag " + (newTags.length > 1 ? "IDs" : "ID") + " '" + newTags.join("', '") + "' not found");
 		res.json({
 			code: "004",
@@ -83,6 +83,10 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	let emptyTags;
+
+	if (req.body.tags !== ['']) emptyTags = [] 
+
 	try {
 		await db.collection('books').updateOne({_id: book._id}, {$set: {
 			ISBN10:		req.body.ISBN10		|| book.ISBN10,
@@ -90,7 +94,7 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 			title:		req.body.title		|| book.title,
 			author:		req.body.author		|| book.author,
 			publisher:	req.body.publisher	|| book.publisher,
-			tags:		req.body.tags		|| book.tags
+			tags:		emptyTags 			|| req.body.tags	|| book.tags
 		}});
 	} catch (err) {
 		utils.logError(err);
