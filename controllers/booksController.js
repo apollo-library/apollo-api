@@ -93,12 +93,21 @@ exports.searchBooks = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	const results = req.body.query ?
-		await db.collection('books').find({$or: [
+	let results = [];
+
+	if (req.body.query) {
+		const regex = new RegExp(req.body.query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'gi');
+		results = await db.collection('books').find({$or: [
 			{_id: req.body.query},
-			{$text: {$search: req.body.query}},
-		]}).toArray() :
-		await db.collection('books').find().toArray()
+			{ISBN10: req.body.query},
+			{ISBN13: req.body.query},
+			{name: {$regex: regex}},
+			{author: {$regex: regex}}
+		]}).toArray();
+	} else {
+		results = await db.collection('books').find().toArray();
+	}
+
 	const filtered = req.body.filters ? results.filter(result => {
 		return result.tags ? result.tags.some(r => req.body.filters.includes(r)) : false;
 	}) : results;

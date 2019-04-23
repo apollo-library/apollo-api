@@ -88,7 +88,7 @@ exports.calculateFine = (loans) => {
 	now.setHours(0,0,0,0);
 
 	let due = loan.loan.dueDate;
-	due.setHours(0, 0, 0, 0);
+	due.setHours(0,0,0,0);
 
 	loans.map(loan => {
 		if (loan.loan.dueDate < now) fine += (now.getTime() - due.getTime()) / 4320000

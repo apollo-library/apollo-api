@@ -35,7 +35,6 @@ mongo apollodb --eval 'db.createCollection("loans")'
 mongo apollodb --eval 'db.createCollection("reservations")'
 mongo apollodb --eval 'db.createCollection("tags")'
 mongo apollodb --eval 'db.createCollection("users")'
-mongo apollodb --eval 'db.books.createIndex({title: "text", author: "text"})'
 
 # Run MongoDB on startup
 sudo systemctl enable mongod.service
