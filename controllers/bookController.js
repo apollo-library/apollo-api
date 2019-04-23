@@ -9,35 +9,6 @@ const	mongo	= require('../mongo'),
 		config	= require('../config'),
 		utils	= require('../utils');
 
-function validDate(dateString) {
-	console.log("Checking date '" + dateString + "'");
-
-	// yyyy-mm-dd
-	if (!/^\d{4}([./-])\d{2}\1\d{2}$/.test(dateString)) {
-		utils.logError("Date is not yyyy-mm-dd");
-		return false;
-	}
-	console.log("...Date is yyyy-mm-dd");
-
-	const newDate = new Date(dateString);
-	if (isNaN(newDate)) {
-		utils.logError("Date does not convert to valid object");
-		return false;
-	}
-	console.log("...Date converted to valid object");
-
-	var now = new Date();
-	now.setHours(0,0,0,0);
-	if (newDate > now) {
-		console.log("...Date is in future");
-		utils.logSuccess("Date is vaild")
-		return true;
-	} else {
-		utils.logError("Date is not in future");
-		return false;
-	}
-};
-
 // Book info
 
 exports.getBook = utils.asyncHandler(async (req, res) => {
@@ -163,7 +134,7 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	if (!validDate(req.body.due)) {
+	if (!utils.validDate(req.body.due)) {
 		res.json({
 			code: "003",
 			message: "Date not a valid format"
@@ -556,7 +527,7 @@ exports.renewBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	if (!validDate(req.body.due)) {
+	if (!utils.validDate(req.body.due)) {
 		res.json({
 			code: "003",
 			message: "Date not a valid format"

@@ -94,6 +94,35 @@ exports.calculateFine = (loans) => {
 	return fine;
 }
 
+exports.validDate = (dateString) => {
+	console.log("Checking date '" + dateString + "'");
+
+	// yyyy-mm-dd
+	if (!/^\d{4}([./-])\d{2}\1\d{2}$/.test(dateString)) {
+		exports.logError("Date is not yyyy-mm-dd");
+		return false;
+	}
+	console.log("...Date is yyyy-mm-dd");
+
+	const newDate = new Date(dateString);
+	if (isNaN(newDate)) {
+		exports.logError("Date does not convert to valid object");
+		return false;
+	}
+	console.log("...Date converted to valid object");
+
+	var now = new Date();
+	now.setHours(0,0,0,0);
+	if (newDate > now) {
+		console.log("...Date is in future");
+		exports.logSuccess("Date is vaild")
+		return true;
+	} else {
+		exports.logError("Date is not in future");
+		return false;
+	}
+};
+
 exports.connectAPI = (url, body) => {
 	return new Promise((resolve, reject) => {
 		var req = http.request({
