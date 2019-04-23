@@ -101,7 +101,7 @@ exports.searchBooks = utils.asyncHandler(async (req, res) => {
 			{_id: req.body.query},
 			{ISBN10: req.body.query},
 			{ISBN13: req.body.query},
-			{name: {$regex: regex}},
+			{title: {$regex: regex}},
 			{author: {$regex: regex}}
 		]}).toArray();
 	} else {
