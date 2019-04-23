@@ -100,7 +100,8 @@ exports.updateUser = utils.asyncHandler(async (req, res) => {
 				+ ' ' + (req.body.surname	|| user.surname),
 			year:		req.body.year		|| user.year,
 			reg:		req.body.reg		|| user.reg,
-			email:		req.body.email		|| user.email
+			email:		req.body.email		|| user.email,
+			deleted: 	false
 		}});
 	} catch (err) {
 		utils.logError(err.message);
@@ -131,10 +132,13 @@ exports.deleteUser = utils.asyncHandler(async (req, res) => {
 
 	try {
 		await db.collection('users').findOneAndUpdate({_id: user._id}, {
+			$set: {
+				forename:		"Deleted",
+				name_concat:	"Deleted",
+				deleted:		true
+			},
 			$unset: {
-				forename:		null,
 				surname:		null,
-				name_concat:	null,
 				year:			null,
 				reg:			null,
 				email:			null

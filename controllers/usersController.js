@@ -118,7 +118,8 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 			name_concat: req.body.forename + ' ' + req.body.surname,
 			year: req.body.year,
 			reg: req.body.reg,
-			email: req.body.email
+			email: req.body.email,
+			deleted: false
 		});
 	} catch (err) {
 		utils.logError(err.message);

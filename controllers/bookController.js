@@ -97,16 +97,19 @@ exports.deleteBook = utils.asyncHandler(async (req, res) => {
 	}
 
 	try {
-		await db.collection('books').findOneAndUpdate({_id: book._id}, {$set: {
-			title:		"Deleted",
-			deleted:	true
-		}, $unset: {
-			ISBN10:		null,
-			ISBN13:		null,
-			author:		null,
-			publisher:	null,
-			tags: 		null
-		}});
+		await db.collection('books').findOneAndUpdate({_id: book._id}, {
+			$set: {
+				title:		"Deleted",
+				deleted:	true
+			},
+			$unset: {
+				ISBN10:		null,
+				ISBN13:		null,
+				author:		null,
+				publisher:	null,
+				tags: 		null
+			}
+		});
 	} catch (err) {
 		utils.logError(err);
 		res.json({
