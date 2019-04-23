@@ -239,7 +239,7 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 				reservationID: null
 			}}, {session});
 
-			await db.collection('reservations').deleteOne({_id: book.reservationID})
+			await db.collection('reservations').deleteOne({_id: book.reservationID});
 		} catch (err) {
 			utils.logError(err.message);
 			session.abortTransaction();
@@ -256,7 +256,7 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 		res.json({
 			code: "000",
 			message: "Success"
-		})
+		});
 	});
 });
 

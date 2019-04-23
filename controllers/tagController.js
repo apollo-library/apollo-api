@@ -3,6 +3,7 @@
 // Mongo Setup
 const	mongo		= require('../mongo'),
 		db			= mongo.db(),
+		client		= mongo.client(),
 		ObjectId	= require('mongodb').ObjectId,
 
 // Extras
@@ -79,20 +80,30 @@ exports.deleteTag = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	try {
-		await db.collection('tags').deleteOne({_id: tag._id});
-	} catch (err) {
-		utils.logError(err);
-		res.json({
-			code: "001",
-			message: "Couldn't delete tag"
-		});
-		return;
-	}
+	client.withSession(async session => {
+		session.startTransaction();
 
-	utils.logSuccess("Tag '" + req.params.bookID + "' successfully deleted");
-	res.json({
-		code: "000",
-		message: "Success"
+		try {
+			await db.collection('tags').deleteOne({_id: req.params.tagID}, {session});
+			await db.collection('books').updateMany({tags: req.params.tagID}, {$pull: {
+				tags: req.params.tagID
+			}}, {session});
+		} catch (err) {
+			utils.logError(err.message);
+			session.abortTransaction();
+			res.json({
+				code: "001",
+				message: "Couldn't delete tag"
+			});
+			return;
+		}
+
+		await session.commitTransaction();
+	}).then(() => {
+		utils.logSuccess("Tag '" + req.params.bookID + "' successfully deleted");
+		res.json({
+			code: "000",
+			message: "Success"
+		});
 	});
 });
