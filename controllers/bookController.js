@@ -59,8 +59,6 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	
-
 	try {
 		await db.collection('books').updateOne({_id: book._id}, {$set: {
 			ISBN10:		req.body.ISBN10		|| book.ISBN10,
@@ -68,7 +66,8 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 			title:		req.body.title		|| book.title,
 			author:		req.body.author		|| book.author,
 			publisher:	req.body.publisher	|| book.publisher,
-			tags:		emptyTags 			|| req.body.tags	|| book.tags
+			tags:		emptyTags 			|| req.body.tags	|| book.tags,
+			deleted: 	false
 		}});
 	} catch (err) {
 		utils.logError(err);
@@ -98,7 +97,16 @@ exports.deleteBook = utils.asyncHandler(async (req, res) => {
 	}
 
 	try {
-		await db.collection('books').deleteOne({_id: book._id});
+		await db.collection('books').findOneAndUpdate({_id: book._id}, {$set: {
+			title:		"Deleted",
+			deleted:	true
+		}, $unset: {
+			ISBN10:		null,
+			ISBN13:		null,
+			author:		null,
+			publisher:	null,
+			tags: 		null
+		}});
 	} catch (err) {
 		utils.logError(err);
 		res.json({

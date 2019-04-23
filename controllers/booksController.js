@@ -11,7 +11,7 @@ exports.getBooks = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
 		message: "Success",
-		data: await db.collection('books').find().toArray()
+		data: await db.collection('books').find({deleted: false}).toArray()
 	});
 });
 
@@ -64,7 +64,8 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 			title:		req.body.title		|| "Unknown Title",
 			author:		req.body.author		|| "Unknown Author",
 			publisher:	req.body.publisher	|| "Unknown Publisher",
-			tags: 		req.body.tags		|| []
+			tags: 		req.body.tags		|| [],
+			deleted: 	false
 		});
 	} catch (err) {
 		utils.logError(err.message);
