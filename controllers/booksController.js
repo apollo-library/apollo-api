@@ -45,7 +45,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 
 	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
 	const tagIDs = tags.map(t => t._id.toString());
-	const newTags = req.body.tags.filter(tag => !tagIDs.includes(tag));
+	const newTags = req.body.tags ? req.body.tags.filter(tag => !tagIDs.includes(tag)) : [];
 
 	if (newTags.length) {
 		utils.logError("Tag " + (newTags.length > 1 ? "IDs" : "ID") + " '" + newTags.join("', '") + "' not found");

@@ -1,5 +1,6 @@
 'use strict';
 const	fs		= require('fs'),
+		http	= require('http'),
 		config	= require('./config');
 
 
@@ -91,4 +92,27 @@ exports.calculateFine = (loans) => {
 	});
 
 	return fine;
+}
+
+exports.connectAPI = (url, body) => {
+	return new Promise((resolve, reject) => {
+		var req = http.request({
+			host: 'localhost',
+			port: config.port,
+			method: body ? 'POST' : 'GET',
+			path: url,
+			headers: {
+				'Content-Type': 'application/json; charset=utf-8'
+			}
+		}, res => {
+			let str = '';
+			res.on('data', chunk => str += chunk);
+			res.on('end', () => resolve(str));
+		}).on('error', err => {
+			exports.logError(err);
+		});
+
+		if (body) req.write(JSON.stringify(body));
+		req.end();
+	});
 }
