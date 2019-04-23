@@ -39,19 +39,9 @@ exports.editTag = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	if (req.body.colour && isNaN(req.body.colour)) {
-		utils.logError("Colour '" + req.body.colour + "' is not a number");
-		res.json({
-			code: "003",
-			message: "Invalid colour"
-		});
-		return;
-	}
-
 	try {
 		await db.collection('tags').updateOne({_id: tag._id}, {$set: {
-			name: req.body.name ? req.body.name : tag.name,
-			colour: req.body.colour ? Number(req.body.colour) : tag.colour
+			name: req.body.name ? req.body.name : tag.name
 		}});
 	} catch (err) {
 		utils.logError(err);
@@ -84,7 +74,7 @@ exports.deleteTag = utils.asyncHandler(async (req, res) => {
 		session.startTransaction();
 
 		try {
-			await db.collection('tags').deleteOne({_id: req.params.tagID}, {session});
+			await db.collection('tags').deleteOne({_id: tag._id}, {session});
 			await db.collection('books').updateMany({tags: req.params.tagID}, {$pull: {
 				tags: req.params.tagID
 			}}, {session});
