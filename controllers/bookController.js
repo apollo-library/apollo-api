@@ -70,6 +70,26 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	let emptyTags;
+	if (req.body.tags) if (req.body.tags[0] === "") emptyTags = [];
+
+	console.log(emptyTags,req.body.tags)
+
+	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
+	const tagIDs = tags.map(t => t._id.toString());
+	const newTags = req.body.tags.filter(tag => !tagIDs.includes(tag));
+
+	if (newTags.length && !emptyTags) {
+		utils.logError("Tag " + (newTags.length > 1 ? "IDs" : "ID") + " '" + newTags.join("', '") + "' not found");
+		res.json({
+			code: "004",
+			message: "Tag not found"
+		});
+		return;
+	}
+
+	
+
 	try {
 		await db.collection('books').updateOne({_id: book._id}, {$set: {
 			ISBN10:		req.body.ISBN10		|| book.ISBN10,
@@ -77,7 +97,7 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 			title:		req.body.title		|| book.title,
 			author:		req.body.author		|| book.author,
 			publisher:	req.body.publisher	|| book.publisher,
-			tags:		req.body.tags		|| book.tags
+			tags:		emptyTags 			|| req.body.tags	|| book.tags
 		}});
 	} catch (err) {
 		utils.logError(err);
