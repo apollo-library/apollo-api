@@ -84,11 +84,14 @@ exports.getLoansForIDs = async (loanIDs, db) => {
 exports.calculateFine = (loans) => {
 	let fine = 0;
 
-	var now = new Date();
+	let now = new Date();
 	now.setHours(0,0,0,0);
 
+	let due = loan.loan.dueDate;
+	due.setHours(0, 0, 0, 0);
+
 	loans.map(loan => {
-		if (loan.loan.dueDate < now) fine += (now.getTime() - loan.loan.dueDate.getTime()) / 4320000
+		if (loan.loan.dueDate < now) fine += (now.getTime() - due.getTime()) / 4320000
 	});
 
 	return fine;
