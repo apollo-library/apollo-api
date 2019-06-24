@@ -22,11 +22,12 @@ else
 	exit 1
 fi
 
+# Install packages
 sudo apt-get update
-sudo apt-get install -y mongodb-org
+sudo apt-get install -y mongodb-org tk nginx --allow-unauthenticated
 
 # Set up Mongo config
-echo -e '\n#Configure Replica Set\nreplication:\n\treplSetName: "rs0"' | sudo tee --append /etc/mongod.conf > /dev/null
+echo -e '\n#Configure Replica Set\nreplication:\n  replSetName: "rs0"' | sudo tee --append /etc/mongod.conf > /dev/null
 sudo service mongod start
 mongo apollodb --eval 'rs.initiate()'
 mongo apollodb --eval 'db.createCollection("books")'
@@ -38,9 +39,6 @@ mongo apollodb --eval 'db.createCollection("users")'
 
 # Run MongoDB on startup
 sudo systemctl enable mongod.service
-
-# Install Nginx
-sudo apt-get install -y nginx
 
 # Run Nginx on startup
 sudo systemctl enable nginx
@@ -61,3 +59,5 @@ echo -e "\nexport NODE_ENV=production" >> ~/.bashrc
 pm2 start server.js
 pm2 startup
 sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u backend --hp /home/backend
+
+sudo apt autoremove -y
