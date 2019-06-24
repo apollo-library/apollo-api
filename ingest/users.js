@@ -9,7 +9,7 @@ if (process.argv.length < 3) {
 }
 
 let lines = fs.readFileSync(process.argv[2]).toString().split('\n');
-const fields = lines[0].trim().split(',');
+const fields = lines[0].trim().split(',').map(field => field.toLowerCase());
 lines.shift();
 
 (async () => {
