@@ -7,6 +7,7 @@ const	mongo		= require('../mongo'),
 // Extras
 		utils	= require('../utils');
 
+// Get info for all books
 exports.getBooks = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
@@ -15,6 +16,7 @@ exports.getBooks = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Add book to database
 exports.addBook = utils.asyncHandler(async (req, res) => {
 	if (!req.body.id) {
 		res.json({
@@ -24,6 +26,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if book is already in the database and return an error if it does
 	const book = await db.collection('books').findOne({_id: req.body.id});
 	if (book) {
 		utils.logError("Book '" + req.body.id + "' already exists");
@@ -34,6 +37,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// If tags are not an array, return an error
 	if (req.body.tags && !req.body.tags.constructor === Array) {
 		utils.logError("Tags '" + req.body.tags + "' not an array");
 		res.json({
@@ -43,12 +47,14 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Detect if there are any tags not in the database
 	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
 	const tagIDs = tags.map(t => t._id.toString());
 	const newTags = req.body.tags ? req.body.tags.filter(tag => !tagIDs.includes(tag)) : [];
 
+	// If any of the tags aren't in the database, return an error
 	if (newTags.length) {
-		utils.logError("Tag " + (newTags.length > 1 ? "IDs" : "ID") + " '" + newTags.join("', '") + "' not found");
+		utils.logError("Tag " + (newTags.length > 1 ? "IDs" : "ID") + " '" + newTags.join("', '") + "' not found"); // 
 		res.json({
 			code: "004",
 			message: "Tag not found"
@@ -56,6 +62,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Add book to database
 	try {
 		await db.collection('books').insertOne({
 			_id:		req.body.id,
@@ -84,6 +91,7 @@ exports.addBook = utils.asyncHandler(async (req, res) => {
 });
 
 
+// Search for a book
 exports.searchBooks = utils.asyncHandler(async (req, res) => {
 	if (!req.body.query && !req.body.filters) {
 		res.send({
@@ -96,18 +104,22 @@ exports.searchBooks = utils.asyncHandler(async (req, res) => {
 	let results = [];
 
 	if (req.body.query) {
-		const regex = new RegExp(req.body.query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'gi');
+		const regex = new RegExp(req.body.query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"), 'gi'); // Regex to fuzzy search
 		results = await db.collection('books').find({$or: [
+			// Exact matches on ID, ISBN10, and ISBN13
 			{_id: req.body.query},
 			{ISBN10: req.body.query},
 			{ISBN13: req.body.query},
+
+			// Fuzzy matches on title and author
 			{title: {$regex: regex}},
 			{author: {$regex: regex}}
 		]}).toArray();
 	} else {
-		results = await db.collection('books').find().toArray();
+		results = await db.collection('books').find().toArray(); // If no query is specified, return all books
 	}
 
+	// Filter results based on requested filters
 	const filtered = req.body.filters ? results.filter(result => {
 		return result.tags ? result.tags.some(r => req.body.filters.includes(r)) : false;
 	}) : results;

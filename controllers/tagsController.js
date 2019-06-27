@@ -8,6 +8,7 @@ const	mongo		= require('../mongo'),
 // Extras
 		utils		= require('../utils');
 
+// Get all tags
 exports.getTags = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
@@ -16,6 +17,7 @@ exports.getTags = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Add tag to database
 exports.addTag = utils.asyncHandler(async (req, res) => {
 	if (!req.body.name) {
 		res.json({
@@ -25,6 +27,7 @@ exports.addTag = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if tag already exists in the database
 	const tag = await db.collection('tags').findOne({name: req.body.name});
 
 	if (tag) {
@@ -36,8 +39,9 @@ exports.addTag = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	const sortedTags = (await db.collection('tags').find().sort({_id: -1}).toArray())
+	const sortedTags = (await db.collection('tags').find().sort({_id: -1}).toArray()) // Find all tags in database and sort them by id
 
+	// Add tag to database
 	try {
 		await db.collection('tags').insertOne({
 			name: req.body.name

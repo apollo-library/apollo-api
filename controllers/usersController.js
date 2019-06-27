@@ -7,6 +7,7 @@ const	mongo	= require('../mongo'),
 // Extras
 		utils	= require('../utils');
 
+// Get info for all users
 exports.getUsers = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
@@ -23,7 +24,9 @@ exports.getUsers = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Add user
 exports.addUser = utils.asyncHandler(async (req, res) => {
+	// Check all parameters are specified
 	if (!req.body.id) {
 		res.json({
 			code: "003",
@@ -72,6 +75,7 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if specified year is invalid
 	const yearInt = parseInt(req.body.year);
 
 	if (isNaN(yearInt) || yearInt != 0 && (yearInt < 7 || yearInt > 13)) {
@@ -82,6 +86,7 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if reg is valid
 	if (!(() => {
 		if (yearInt == 0) {
 			return req.body.reg == "STAFF";
@@ -100,6 +105,7 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if user is already in the database
 	const user = await db.collection('users').findOne({_id: req.body.id});
 	if (user) {
 		utils.logError("User '" + req.body.id + "' already exists");
@@ -110,6 +116,7 @@ exports.addUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Add user to database
 	try {
 		await db.collection('users').insertOne({
 			_id: req.body.id,

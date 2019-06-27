@@ -9,8 +9,9 @@ const	mongo		= require('../mongo'),
 // Extras
 		utils	= require('../utils');
 
+// Get info for a tag
 exports.getTag = utils.asyncHandler(async (req, res) => {
-	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)});
+	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)}); // Find tag in database
 	if (!tag) {
 		utils.logError("Tag ID '" + req.params.tagID + "' not found");
 		res.json({
@@ -28,8 +29,9 @@ exports.getTag = utils.asyncHandler(async (req, res) => {
 	});
 })
 
+// Edit tag info
 exports.editTag = utils.asyncHandler(async (req, res) => {
-	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)});
+	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)}); // Find tag in database
 	if (!tag) {
 		utils.logError("Tag ID '" + req.params.tagID + "' not found");
 		res.json({
@@ -39,6 +41,7 @@ exports.editTag = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Update tag name
 	try {
 		await db.collection('tags').updateOne({_id: tag._id}, {$set: {
 			name: req.body.name ? req.body.name : tag.name
@@ -59,8 +62,9 @@ exports.editTag = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Delete tag from database
 exports.deleteTag = utils.asyncHandler(async (req, res) => {
-	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)});
+	const tag = await db.collection('tags').findOne({_id: ObjectId(req.params.tagID)}); // Find tag in database
 	if (!tag) {
 		utils.logError("Tag ID '" + req.params.tagID + "' not found");
 		res.json({
@@ -70,7 +74,8 @@ exports.deleteTag = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
-	client.withSession(async session => {
+	// Delete tag and update relevant books in database
+	client.withSession(async session => { // This uses MongoDB 4's new multi-transaction features
 		session.startTransaction();
 
 		try {

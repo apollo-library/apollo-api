@@ -7,12 +7,11 @@ const	mongo	= require('../mongo'),
 // Extras
 		utils	= require('../utils');
 
+//Get all loans data
 exports.getLoans = utils.asyncHandler(async (req, res) => {
 	const loans = await db.collection('loans').find().toArray();
 
-	var now = new Date();
-	now.setHours(0,0,0,0);
-
+	// Get all loans currently out
 	const allData = await utils.getLoanData(loans.filter(loan => !loan.returnDate), db);
 
 	if (!allData) {
@@ -31,12 +30,15 @@ exports.getLoans = utils.asyncHandler(async (req, res) => {
 		});
 });
 
+// Get all overdue loans
 exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
-	const loans = await db.collection('loans').find().toArray();
+	const loans = await db.collection('loans').find().toArray(); // Get all loans from database
 
+	// now is a Date object set at midnight
 	var now = new Date();
 	now.setHours(0,0,0,0);
 
+	// Get all loans currently out with a due date before midnight today
 	const allData = await utils.getLoanData(loans.filter(loan => !loan.returnDate && loan.dueDate < now), db);
 
 	if (!allData) {
@@ -55,9 +57,12 @@ exports.getOverdueLoans = utils.asyncHandler(async (req, res) => {
 		});
 });
 
+// Get all loans due soon or overdue
 exports.getDueLoans = utils.asyncHandler(async (req, res) => {
 	const loans = await db.collection('loans').find().toArray();
 
+	// date is a Date object set at midnight 3 days in the future
+	// This sets the bounds for a 'due' book as one that needs to be returned in the next 3 days (or overdue)
 	var date = new Date();
 	date.setHours(0,0,0,0);
 	date.setDate(date.getDate() + 3);

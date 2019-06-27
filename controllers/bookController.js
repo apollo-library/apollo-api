@@ -11,9 +11,11 @@ const	mongo	= require('../mongo'),
 
 // Book info
 
+// Get info for a specific book
 exports.getBook = utils.asyncHandler(async (req, res) => {
-	const book = await db.collection('books').findOne({_id: req.params.bookID});
-	if (!book) {
+	const book = await db.collection('books').findOne({_id: req.params.bookID}); // Find book in database
+
+	if (!book) { // Book not found in database
 		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
@@ -30,9 +32,11 @@ exports.getBook = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Edit details for a specific book
 exports.editBook = utils.asyncHandler(async (req, res) => {
-	const book = await db.collection('books').findOne({_id: req.params.bookID});
-	if (!book) {
+	const book = await db.collection('books').findOne({_id: req.params.bookID}); // Find book in database
+	
+	if (!book) { // Book not found in database
 		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
@@ -41,13 +45,17 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// This fixes a problem with url encoded data
+	// emptyTags is set to an empty array if no tags are in the tags data, otherwise the correct tags are added and linked in the database
+
 	let emptyTags;
 	if (req.body.tags && req.body.tags[0] === "") emptyTags = [];
 
-	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : [];
-	const tagIDs = tags.map(t => t._id.toString());
-	const newTags = req.body.tags ? req.body.tags.filter(tag => !tagIDs.includes(tag)): [];
+	const tags = req.body.tags ? await db.collection('tags').find().sort({_id: -1}).toArray() : []; // List of all tags in database if tags are specified in the body, otherwise empty array
+	const tagIDs = tags.map(t => t._id.toString()); // Array of tag IDs for all tags from database
+	const newTags = req.body.tags ? req.body.tags.filter(tag => !tagIDs.includes(tag)): []; // List of all tags that aren't in the database
 
+	// If tags are sent which aren't in the database, return error
 	if (newTags.length && !emptyTags) {
 		utils.logError("Tag " + (newTags.length > 1 ? "IDs" : "ID") + " '" + newTags.join("', '") + "' not found");
 		res.json({
@@ -57,6 +65,7 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Upload updated object to database
 	try {
 		await db.collection('books').updateOne({_id: book._id}, {$set: {
 			ISBN10:		req.body.ISBN10		|| book.ISBN10,
@@ -83,6 +92,9 @@ exports.editBook = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Delete book
+// Note: this doesn't actually delete the entry, rather sets a 'deleted' attribute to true and clears any identifying data from it
+//       this stops any loan history from breaking by keeping the reference
 exports.deleteBook = utils.asyncHandler(async (req, res) => {
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
@@ -97,10 +109,10 @@ exports.deleteBook = utils.asyncHandler(async (req, res) => {
 	try {
 		await db.collection('books').findOneAndUpdate({_id: book._id}, {
 			$set: {
-				title:		"Deleted",
+				title:		"Deleted", // Setting this allows it to be displayed by the frontend
 				deleted:	true
 			},
-			$unset: {
+			$unset: { // Clear identifying data
 				ISBN10:		null,
 				ISBN13:		null,
 				author:		null,
@@ -126,7 +138,9 @@ exports.deleteBook = utils.asyncHandler(async (req, res) => {
 
 // Book loaning and management
 
+// Withdraw book
 exports.withdrawBook = utils.asyncHandler(async (req, res) => {
+	// Check all parameters are specified and return an error if not
 	if (!req.body.userID) {
 		res.json({
 			code: "003",
@@ -180,6 +194,7 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if book has a current reservation
 	const reservation = book.reservationID ? await db.collection('reservations').findOne({_id: book.reservationID}) : null;
 
 	if (reservation && reservation.userID != user._id) {
@@ -191,6 +206,7 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Add loan data in all places
 	client.withSession(async session => {
 		session.startTransaction();
 
@@ -240,7 +256,9 @@ exports.withdrawBook = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Deposit book
 exports.depositBook = utils.asyncHandler(async (req, res) => {
+	// Check that book exists in database
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -269,6 +287,7 @@ exports.depositBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Update all appropriate objects in database
 	client.withSession(async session => {
 		session.startTransaction();
 
@@ -313,7 +332,9 @@ exports.depositBook = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Reserve book
 exports.reserveBook = utils.asyncHandler(async (req, res) => {
+	// Check all data is provided
 	if (!req.body.userID) {
 		res.json({
 			code: "003",
@@ -341,6 +362,7 @@ exports.reserveBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check book exists
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -351,6 +373,7 @@ exports.reserveBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// If the book is reserved, return an error
 	if (book.reservationID) {
 		utils.logError("Book '" + req.params.bookID + "' already reserved");
 		res.json({
@@ -360,6 +383,7 @@ exports.reserveBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Add and link reservation object
 	client.withSession(async session => {
 		session.startTransaction();
 
@@ -403,7 +427,9 @@ exports.reserveBook = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Get reservation info
 exports.getReservation = utils.asyncHandler(async (req, res) => {
+	// Check book exists in database
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -413,6 +439,8 @@ exports.getReservation = utils.asyncHandler(async (req, res) => {
 		});
 		return;
 	}
+
+	// Check if book is currently reserved
 	if (!book.reservationID) {
 		utils.logError("Book '" + req.params.bookID + "' not reserved");
 		res.json({
@@ -422,6 +450,7 @@ exports.getReservation = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if reservation is in database
 	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
 	if (!reservation) {
 		utils.logError("Reservation for book '" + req.params.bookID + "' not found");
@@ -440,7 +469,9 @@ exports.getReservation = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Delete reservation
 exports.deleteReservation = utils.asyncHandler(async (req, res) => {
+	// Check if userID is sent
 	if (!req.body.userID) {
 		res.json({
 			code: "003",
@@ -449,6 +480,7 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if user is in the database
 	const user = await db.collection('users').findOne({_id: req.body.userID});
 	if (!user) {
 		utils.logError("User '" + req.params.userID + "' not found");
@@ -459,6 +491,7 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check if book is in the database
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -468,6 +501,8 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 		});
 		return;
 	}
+
+	// Check that the book is currently reserved
 	if (!book.reservationID) {
 		utils.logError("Book '" + req.params.bookID + "' not reserved");
 		res.json({
@@ -477,9 +512,10 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check for reservation in the database
 	const reservation = await db.collection('reservations').findOne({_id: book.reservationID});
 	if (!reservation) {
-		utils.logError("Reservation for book '" + req.params.bookID + "' not reserved");
+		utils.logError("Reservation for book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Reservation not found"
@@ -487,6 +523,7 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Update all objects in the database
 	client.withSession(async session => {
 		session.startTransaction();
 
@@ -527,7 +564,9 @@ exports.deleteReservation = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Renew book loan
 exports.renewBook = utils.asyncHandler(async (req, res) => {
+	// Check date is specified and of a valid format
 	if (!req.body.due) {
 		res.json({
 			code: "003",
@@ -544,8 +583,10 @@ exports.renewBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check book is in the database
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
+		utils.logError("Book '" + req.params.bookID + "' not found");
 		res.json({
 			code: "002",
 			message: "Book not found"
@@ -553,8 +594,9 @@ exports.renewBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check the book is on loan
 	if (!book.loanID) {
-		utils.logError("Book '" + req.params.bookID + "' not found");
+		utils.logError("Book '" + req.params.bookID + "' not on loan");
 		res.json({
 			code: "004",
 			message: "Book not on loan"
@@ -562,10 +604,12 @@ exports.renewBook = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Update database
 	client.withSession(async session => {
 		session.startTransaction();
 
 		try {
+			// Change due date to renew the loan
 			const withdrawID = (await db.collection('loans').findOneAndUpdate({_id: book.loanID}, {$set: {
 				dueDate: new Date(req.body.due)
 			}})).value.withdrawID;
@@ -600,8 +644,11 @@ exports.renewBook = utils.asyncHandler(async (req, res) => {
 
 });
 
-// Loans information
+// Loan information
+
+// Get loan information
 exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
+	// Check book is in the database
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -612,6 +659,7 @@ exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check the book is on loan
 	if (!book.loanID) {
 		utils.logError("Book '" + req.params.bookID + "' not on loan");
 		res.json({
@@ -621,7 +669,16 @@ exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Check the loan object is in the database
 	const loan = await db.collection('loans').findOne({_id: book.loanID});
+	if (!loan) {
+		utils.logError("Loan '" + book.loanID + "' not found");
+		res.json({
+			code: "002",
+			message: "Loan not found"
+		});
+		return;
+	}
 
 	utils.logSuccess("Loan for book '" + req.params.bookID + "' found");
 	res.json({
@@ -633,7 +690,9 @@ exports.getCurrentLoan = utils.asyncHandler(async (req, res) => {
 
 // History
 
+// Get all history for a book
 exports.getHistory = utils.asyncHandler(async (req, res) => {
+	// Check the book is in the database
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -644,10 +703,14 @@ exports.getHistory = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Query database for all history then filter to match book
 	const history = (await db.collection('history').find().toArray())
 		.filter(item => item.book == req.params.bookID);
 
+	// error is used to combine all error handling into one return
 	let error = false;
+
+	// Get user data for all history items
 	const allData = await Promise.all(history.map(async item => {
 		const user = await db.collection('users').findOne({_id: item.user});
 
@@ -674,7 +737,9 @@ exports.getHistory = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Get a user's history with the book
 exports.getUserHistory = utils.asyncHandler(async (req, res) => {
+	// Check book is in the database
 	const book = await db.collection('books').findOne({_id: req.params.bookID});
 	if (!book) {
 		utils.logError("Book '" + req.params.bookID + "' not found");
@@ -689,8 +754,8 @@ exports.getUserHistory = utils.asyncHandler(async (req, res) => {
 		code: "000",
 		message: "Success",
 		data: (await db.collection('history').find().toArray())
-			.filter(item => item.book == req.params.bookID)
-			.foreach(item => item.user)
-			.filter((item, pos, items) => items.indexOf(item) == pos)
+			.filter(item => item.book == req.params.bookID) // Get all items for the book
+			.foreach(item => item.user) // Get user data for all items
+			.filter((item, pos, items) => items.indexOf(item) == pos) // Remove duplicates
 	});
 });

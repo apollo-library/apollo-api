@@ -7,7 +7,9 @@ const	mongo	= require('../mongo'),
 // Extras
 		utils	= require('../utils');
 
+// Get user info
 exports.getUser = utils.asyncHandler(async (req, res) => {
+	// Check if user exists in database
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
 		utils.logError("User '" + req.params.userID + "' not found");
@@ -18,8 +20,9 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// If user has loans out, get the details for them
 	if (user.loanIDs && user.loanIDs.length) {
-		const loans = await utils.getLoansForIDs(user.loanIDs, db);
+		const loans = await utils.getLoansForIDs(user.loanIDs, db); // Get loan for all IDs
 
 		if (!loans) {
 			res.json({
@@ -33,9 +36,10 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 	} else {
 		user.loans = [];
 	}
-	delete user.loanIDs;
 
-	user.fine = utils.calculateFine(user.loans);
+	delete user.loanIDs; // loanIDs doesn't need to be returned in the response
+
+	user.fine = utils.calculateFine(user.loans); // Generate fine from loan objects
 
 	utils.logSuccess("User '" + req.params.userID + "' found");
 	res.json({
@@ -46,6 +50,7 @@ exports.getUser = utils.asyncHandler(async (req, res) => {
 });
 
 exports.updateUser = utils.asyncHandler(async (req, res) => {
+	// Check if user exists in database
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
 		utils.logError("User '" + req.params.userID + "' not found");
@@ -56,15 +61,17 @@ exports.updateUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// year and reg objects for easy manipulation
 	let year = req.body.year;
 	let reg = req.body.reg;
 
 	if (year || reg) {
-		if (!year) year = user.year;
+		if (!year) year = user.year; // 
 		if (!reg) reg = user.reg;
 
 		const yearInt = parseInt(year);
 
+		// If the provided year is invalid, return an error
 		if (isNaN(yearInt) || yearInt != 0 && (yearInt < 7 || yearInt > 13)) {
 			res.json({
 				code: "003",
@@ -73,6 +80,7 @@ exports.updateUser = utils.asyncHandler(async (req, res) => {
 			return;
 		}
 
+		// Check if the reg is valid
 		if (!(() => {
 			if (yearInt == 0) {
 				return reg == "STAFF";
@@ -92,6 +100,7 @@ exports.updateUser = utils.asyncHandler(async (req, res) => {
 		}
 	}
 
+	// Update user in database
 	try {
 		await db.collection('users').findOneAndUpdate({_id: req.params.userID}, {$set: {
 			forename:	req.body.forename	|| user.forename,
@@ -119,7 +128,11 @@ exports.updateUser = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Delete user
+// Note: this doesn't actually delete the entry, rather sets a 'deleted' attribute to true and clears any identifying data from it
+//       this stops any loan history from breaking by keeping the reference
 exports.deleteUser = utils.asyncHandler(async (req, res) => {
+	// Check if user exists in database
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
 		utils.logError("User '" + req.params.userID + "' not found");
@@ -130,9 +143,11 @@ exports.deleteUser = utils.asyncHandler(async (req, res) => {
 		return;
 	}
 
+	// Remove identifying data from user
 	try {
 		await db.collection('users').findOneAndUpdate({_id: user._id}, {
 			$set: {
+				// Set both forename and name_concat to "Deleted" for frontend display purposes
 				forename:		"Deleted",
 				name_concat:	"Deleted",
 				deleted:		true
@@ -160,6 +175,7 @@ exports.deleteUser = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Get all history for a user
 exports.getHistory = utils.asyncHandler(async (req, res) => {
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
@@ -179,7 +195,9 @@ exports.getHistory = utils.asyncHandler(async (req, res) => {
 	});
 });
 
+// Get loan history for a user
 exports.getLoanHistory = utils.asyncHandler(async (req, res) => {
+	// Check if user exists in database
 	const user = await db.collection('users').findOne({_id: req.params.userID});
 	if (!user) {
 		utils.logError("User '" + req.params.userID + "' not found");
@@ -195,7 +213,7 @@ exports.getLoanHistory = utils.asyncHandler(async (req, res) => {
 		message: "Success",
 		data: (await utils.getLoanData((await db.collection('loans').find().toArray()), db))
 			.filter(loan => loan.user._id == req.params.userID).map(loan => {
-				delete loan.user;
+				delete loan.user; // User is provided as input so doesn't need to be returned
 				return loan;
 			})
 	});

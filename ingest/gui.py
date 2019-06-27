@@ -5,7 +5,7 @@ from subprocess import check_output
 from re import compile
 from os.path import dirname, realpath
 
-class CustomButton(Button):
+class CustomButton(Button): # Custom button class for colouring
 	def __init__(self, master, **kw):
 		Button.__init__(self, master=master, **kw)
 		self.defaultBackground = self["background"]
@@ -25,8 +25,7 @@ def escape_ansi(line):
 	ansi_escape = compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
 	return ansi_escape.sub('', line)
 
-filename = "..."
-def get_filename():
+def get_filename(): # Get filename from dialog
 	global filename
 	global label
 	filename = filedialog.askopenfilename(
@@ -44,46 +43,51 @@ def upload():
 	global root
 	global status_label
 
+	# Don't do anything if the file isn't selected
 	if filename == "...": return
 
 	fail_ids = []
 
+	# Select which ingest to run from dropdown menu
 	js_file = "/users.js"
-
-	print(menu_var.get())
 	if menu_var.get() == "Books":
 		js_file = "/books.js"
 
+	# Get number of items to ingest
 	with open(filename) as f:
 		for i, _ in enumerate(f): pass
-
 	status_label["text"] = "Ingesting %d items..." % i
+	
 	root.update()
 
+	# Run the script and get the log
 	log = escape_ansi(check_output(["/usr/bin/node", dirname(realpath(__file__)) + js_file, filename]).decode("utf-8"))
 
-	for line in filter(lambda x: len(x), log.split('\n')):
+	# Iterate through all the lines of the log and check if it's a success or an error
+	for line in filter(lambda x: len(x), log.split('\n')): # Only runs on lines with a non-zero length
 		print("\n" + line)
 
 		can_connect = True
 
 		words = line.split(' ')
+
 		if words[0] == '[ERROR]':
-			if 'ECONNREFUSED' in words:
+			if 'ECONNREFUSED' in words: # Check for connection error
 				can_connect = False
 				break
 			else:
-				fail_ids.append(words[5][1:-2])
+				fail_ids.append(words[5][1:-2]) # Get ID from line and remove quotes
 				print('An error occurred: ' + ' '.join(words[1:]))
+
 		elif words[0] == '[SUCCESS]':
-			if words[1] == 'Updated':
-				print('Entry updated, id ' + words[-1])
-			elif words[1] == 'Added':
-				print('Entry added, id ' + words[-1])
+			if words[1] == 'Updated': print('Entry updated, id ' + words[-1])
+			elif words[1] == 'Added': print('Entry added, id ' + words[-1])
+
 		else:
 			print("Unknown error, output is " + ''.join(words[1:]))
-			print("At this point, you should probably just buy a proper system...")
+			print("At this point, you should probably just buy a proper system...") # :)
 
+	# Display status in the GUI
 	if can_connect:
 		if len(fail_ids):
 			status_label["foreground"] = "red"
@@ -98,15 +102,20 @@ def upload():
 		status_label["text"] = "CANNOT CONNECT TO SERVER"
 
 
+# Set up tk
 root = Tk()
 root.resizable(False, False)
 root["bg"] = "white"
 
+filename = "..."
+
+# tk variable for dropdown menu
 menu_var = StringVar(root)
 menu_var.set("Users")
 
-root.title("Apollo Data Ingest")
+root.title("Apollo Data Ingest") # Set window title
 
+# Create all objects in window
 label = Label(root, text="...", bg="#e8e8e8", font=("Arial", "16"), width=30, borderwidth=5, anchor="w")
 label.grid(row=0, column=0, columnspan=2, padx=(10, 10), pady=(5, 0))
 
@@ -129,4 +138,5 @@ dropdown.config(bg="white", relief="flat", font=("Arial", "14"))
 status_label = Label(root, text="", bg="white", fg="black", font=("Arial", "18"))
 status_label.grid(row=2, columnspan=3, pady=(10, 5))
 
+# Run main loop
 root.mainloop()

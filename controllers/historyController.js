@@ -7,6 +7,7 @@ const	mongo	= require('../mongo'),
 // Extras
 		utils	= require('../utils');
 
+// Get all history
 exports.getHistory = utils.asyncHandler(async (req, res) => {
 	res.json({
 		code: "000",
