@@ -7,13 +7,9 @@
 
 ## Running the Server
 
-**To install**
-
-`npm install`
-
-**To run**
-
-`npm start`
+- Install the server using `npm install`.
+- Run the install script using `sh setup.sh`.
+- Run the server using `node server.js`.
 
 ## Error Codes
 
