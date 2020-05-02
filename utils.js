@@ -11,7 +11,7 @@ exports.asyncHandler = (func) => {
 }
 
 // Log string to appropriate logfile (specified in config)
-exports.logToFile(string) {
+exports.logToFile = string => {
 	fs.appendFile(config.logFile, string + '\n', err => {
 		if (err) console.log("\x1b[31m[ERROR]\x1b[0m Error writing to logfile: " + err.message);
 	});
